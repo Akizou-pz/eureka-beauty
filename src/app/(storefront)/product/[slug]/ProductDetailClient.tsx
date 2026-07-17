@@ -144,12 +144,12 @@ export default function ProductDetailClient({ params }: PageProps) {
           
           {/* Thumbnails */}
           {product.images.length > 1 && (
-            <div className="flex gap-4">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
               {product.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(imgUrl)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white transition ${activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
                 >
                   <img src={imgUrl} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
                 </button>
