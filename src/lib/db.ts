@@ -19,7 +19,8 @@ export type {
   Review, 
   BlogPost, 
   Testimonial,
-  Customer
+  Customer,
+  ShippingCountry
 } from './mockDb';
 
 /**

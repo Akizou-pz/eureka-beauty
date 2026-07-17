@@ -14,7 +14,8 @@ import {
   ShieldAlert,
   UserCheck,
   Menu,
-  ChevronRight
+  ChevronRight,
+  Truck
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -81,6 +82,7 @@ export default function AdminLayout({
     { href: '/admin/products', label: 'Catalogue Produits', icon: ShoppingBag },
     { href: '/admin/orders', label: 'Commandes & Factures', icon: ClipboardList },
     { href: '/admin/marketing', label: 'Coupons & Promos', icon: Percent },
+    { href: '/admin/shipping', label: 'Zones & Tarifs', icon: Truck },
   ];
 
   return (

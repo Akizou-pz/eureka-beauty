@@ -119,6 +119,13 @@ export interface Review {
   created_at: string;
 }
 
+export interface ShippingCountry {
+  id: string;
+  country_name: string;
+  currency: string;
+  custom_shipping_cost: number;
+  free_shipping_cities: string[];}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -399,6 +406,16 @@ const seedDeliveryZones: DeliveryZone[] = [
   { id: 'zone-tg-lome', country: 'Togo', city: 'Lomé', zone_name: 'Lomé Center', cost_xof: 1500, shipping_type: 'Standard', min_days: 2, max_days: 3 },
 ];
 
+const seedShippingCountries: ShippingCountry[] = [
+  { id: 'ship-ci', country_name: "Côte d'Ivoire", currency: "XOF", custom_shipping_cost: 3000, free_shipping_cities: ["Abidjan", "Yamoussoukro"] },
+  { id: 'ship-sn', country_name: "Senegal", currency: "XOF", custom_shipping_cost: 3500, free_shipping_cities: ["Dakar"] },
+  { id: 'ship-bj', country_name: "Benin", currency: "XOF", custom_shipping_cost: 2500, free_shipping_cities: ["Cotonou"] },
+  { id: 'ship-tg', country_name: "Togo", currency: "XOF", custom_shipping_cost: 2000, free_shipping_cities: ["Lomé"] },
+  { id: 'ship-cm', country_name: "Cameroon", currency: "XAF", custom_shipping_cost: 4000, free_shipping_cities: ["Douala", "Yaoundé"] },
+  { id: 'ship-ml', country_name: "Mali", currency: "XOF", custom_shipping_cost: 3500, free_shipping_cities: ["Bamako"] },
+  { id: 'ship-bf', country_name: "Burkina Faso", currency: "XOF", custom_shipping_cost: 3500, free_shipping_cities: ["Ouagadougou"] }
+];
+
 const seedCoupons: Coupon[] = [
   { id: 'cp-glow', code: 'EUREKAGLOW', discount_percent: 15, min_order_value_xof: 10000, is_active: true },
   { id: 'cp-welcome', code: 'WELCOME10', discount_percent: 10, min_order_value_xof: 0, is_active: true },
@@ -574,18 +591,43 @@ class MockDB {
     return this.get<DeliveryZone[]>('eb_delivery_zones', seedDeliveryZones);
   }
 
-  getCustomShippingCost(country: string): number {
-    const defaultRates: Record<string, number> = {
-      "Côte d'Ivoire": 3000,
-      "Senegal": 3500,
-      "Benin": 2500,
-      "Togo": 2000,
-      "Cameroon": 4000,
-      "Mali": 3500,
-      "Burkina Faso": 3500
+  getCustomShippingCost(countryName: string): number {
+    const countries = this.getShippingCountries();
+    const found = countries.find(c => c.country_name.toLowerCase() === countryName.toLowerCase());
+    return found ? found.custom_shipping_cost : 2500;
+  }
+
+  // Shipping Countries CRUD
+  getShippingCountries(): ShippingCountry[] {
+    return this.get<ShippingCountry[]>('eb_shipping_countries', seedShippingCountries);
+  }
+
+  createShippingCountry(data: Omit<ShippingCountry, 'id'>): ShippingCountry {
+    const countries = this.getShippingCountries();
+    const newCountry: ShippingCountry = {
+      ...data,
+      id: 'ship-' + Math.random().toString(36).substr(2, 9),
     };
-    const rates = this.get<Record<string, number>>('eb_country_shipping_rates', defaultRates);
-    return rates[country] || 2500;
+    countries.push(newCountry);
+    this.set('eb_shipping_countries', countries);
+    return newCountry;
+  }
+
+  updateShippingCountry(id: string, updates: Partial<ShippingCountry>): ShippingCountry {
+    const countries = this.getShippingCountries();
+    const idx = countries.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error('Country not found');
+    countries[idx] = { ...countries[idx], ...updates };
+    this.set('eb_shipping_countries', countries);
+    return countries[idx];
+  }
+
+  deleteShippingCountry(id: string): boolean {
+    const countries = this.getShippingCountries();
+    const filtered = countries.filter((c) => c.id !== id);
+    if (filtered.length === countries.length) return false;
+    this.set('eb_shipping_countries', filtered);
+    return true;
   }
 
   // Testimonials

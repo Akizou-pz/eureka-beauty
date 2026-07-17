@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { db, DeliveryZone, Order } from '@/lib/db';
+import { db, DeliveryZone, Order, ShippingCountry } from '@/lib/db';
 import {
   ShoppingBag,
   CheckCircle,
@@ -56,6 +56,16 @@ export default function CheckoutPage() {
   const loyaltyDiscountValue = loyaltyPointsBalance * 10; // 1 point = 10 FCFA discount
 
   const [customCity, setCustomCity] = useState('');
+  const [countriesList, setCountriesList] = useState<ShippingCountry[]>([]);
+
+  // Load countries dynamically from database
+  useEffect(() => {
+    const loaded = db.getShippingCountries();
+    setCountriesList(loaded);
+    if (loaded.length > 0) {
+      setCountry(loaded[0].country_name);
+    }
+  }, []);
 
   // Synchronize Auth user details if logged in
   useEffect(() => {
@@ -70,16 +80,14 @@ export default function CheckoutPage() {
 
   // Reset city selection when country changes
   useEffect(() => {
-    if (country === "Côte d'Ivoire") setCity("Abidjan");
-    else if (country === "Senegal") setCity("Dakar");
-    else if (country === "Cameroon") setCity("Douala");
-    else if (country === "Benin") setCity("Cotonou");
-    else if (country === "Mali") setCity("Bamako");
-    else if (country === "Burkina Faso") setCity("Ouagadougou");
-    else setCity("Lomé");
-
+    const currentCountryObj = countriesList.find(c => c.country_name === country);
+    if (currentCountryObj && currentCountryObj.free_shipping_cities.length > 0) {
+      setCity(currentCountryObj.free_shipping_cities[0]);
+    } else {
+      setCity('Autre');
+    }
     setCustomCity("");
-  }, [country]);
+  }, [country, countriesList]);
 
   // Synchronize shipping cost to the CartContext dynamically
   useEffect(() => {
@@ -160,7 +168,7 @@ export default function CheckoutPage() {
       subtotal_xof: subtotal,
       discount_xof: finalDiscount,
       total_xof: finalTotal,
-      currency: 'XOF',
+      currency: countriesList.find(c => c.country_name === country)?.currency || 'XOF',
       payment_method: paymentMethod,
       items: orderItems,
     };
@@ -397,13 +405,11 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                   onChange={(e) => setCountry(e.target.value)}
                   className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
                 >
-                  <option value="Côte d'Ivoire">Côte d'Ivoire (XOF)</option>
-                  <option value="Senegal">Sénégal (XOF)</option>
-                  <option value="Benin">Bénin (XOF)</option>
-                  <option value="Togo">Togo (XOF)</option>
-                  <option value="Cameroon">Cameroun (XAF)</option>
-                  <option value="Mali">Mali(XOF)</option>
-                  <option value="Burkina Faso">Burkina Faso(XOF)</option>
+                  {countriesList.map((c) => (
+                    <option key={c.id} value={c.country_name}>
+                      {c.country_name} ({c.currency})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -421,27 +427,11 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                   }}
                   className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
                 >
-                  {country === "Côte d'Ivoire" ? (
-                    <>
-                      <option value="Abidjan">Abidjan</option>
-                      <option value="Yamoussoukro">Yamoussoukro</option>
-                    </>
-                  ) : country === "Senegal" ? (
-                    <option value="Dakar">Dakar</option>
-                  ) : country === "Cameroon" ? (
-                    <>
-                      <option value="Douala">Douala</option>
-                      <option value="Yaoundé">Yaoundé</option>
-                    </>
-                  ) : country === "Benin" ? (
-                    <option value="Cotonou">Cotonou</option>
-                  ) : country === "Mali" ? (
-                    <option value="Bamako">Bamako</option>
-                  ) : country === "Burkina Faso" ? (
-                    <option value="Ouagadougou">Ouagadougou</option>
-                  ) : (
-                    <option value="Lomé">Lomé</option>
-                  )}
+                  {countriesList.find(c => c.country_name === country)?.free_shipping_cities.map((cityOption) => (
+                    <option key={cityOption} value={cityOption}>
+                      {cityOption}
+                    </option>
+                  ))}
                   <option value="Autre">Autre (Saisir manuellement)</option>
                 </select>
               </div>
