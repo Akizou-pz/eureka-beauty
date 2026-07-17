@@ -1,0 +1,563 @@
+'use client';
+
+import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useLangCurr } from '@/context/LanguageCurrencyContext';
+import { useCart } from '@/context/CartContext';
+import { db, Product, Review } from '@/lib/db';
+import { 
+  Star, 
+  ShoppingBag, 
+  Heart, 
+  Check, 
+  AlertTriangle, 
+  ShieldCheck, 
+  Truck, 
+  RotateCcw,
+  Sparkles,
+  MessageCircle
+} from 'lucide-react';
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default function ProductDetailClient({ params }: PageProps) {
+  const router = useRouter();
+  const resolvedParams = use(params);
+  const { slug } = resolvedParams;
+
+  const { formatPrice, t } = useLangCurr();
+  const { addToCart } = useCart();
+
+  // Component states
+  const [product, setProduct] = useState<Product | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [activeImage, setActiveImage] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState<'details' | 'ingredients' | 'how-to' | 'reviews' | 'delivery'>('details');
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+
+  // Bundle state
+  const [bundleProducts, setBundleProducts] = useState<Product[]>([]);
+  const [bundleAdded, setBundleAdded] = useState(false);
+
+  // Review Form state
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  useEffect(() => {
+    const foundProduct = db.getProductBySlug(slug);
+    if (!foundProduct) {
+      router.push('/shop');
+      return;
+    }
+
+    setProduct(foundProduct);
+    setActiveImage(foundProduct.images[0] || '');
+    
+    // Fetch product reviews
+    const prodReviews = db.getReviews(foundProduct.id);
+    setReviews(prodReviews);
+
+    // Fetch related products (same category)
+    const related = db.getProducts().filter(
+      (p) => p.category_id === foundProduct.category_id && p.id !== foundProduct.id
+    );
+    setRelatedProducts(related.slice(0, 4));
+
+    // Seed bundle recommendations (e.g. 2 other items)
+    const bundleItems = db.getProducts().filter((p) => p.id !== foundProduct.id);
+    setBundleProducts(bundleItems.slice(0, 2));
+
+    // Reset counts
+    setQuantity(1);
+    setReviewSubmitted(false);
+  }, [slug]);
+
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold" />
+      </div>
+    );
+  }
+
+  // Price calculations
+  const discountedUnitPrice = product.price_xof * (1 - product.discount_percent / 100);
+  const isLowStock = product.stock > 0 && product.stock <= 5;
+  const isOutOfStock = product.stock === 0;
+
+  // Bundle calculations
+  const bundleSubtotal = discountedUnitPrice + bundleProducts.reduce((sum, p) => sum + p.price_xof * (1 - p.discount_percent / 100), 0);
+  const bundleDiscountedTotal = bundleSubtotal * 0.9; // 10% discount on bundle!
+
+  const handleAddBundleToCart = () => {
+    addToCart(product, 1);
+    bundleProducts.forEach((p) => addToCart(p, 1));
+    setBundleAdded(true);
+    alert('Lot complet ajouté au panier avec 10% de réduction !');
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewerName || !reviewComment) return;
+
+    db.addReview(product.id, reviewerName, reviewRating, reviewComment);
+    
+    // Refresh reviews
+    const updatedReviews = db.getReviews(product.id);
+    setReviews(updatedReviews);
+
+    // Refresh product (rating/review_count updates)
+    const refreshedProd = db.getProductById(product.id);
+    if (refreshedProd) setProduct(refreshedProd);
+
+    setReviewSubmitted(true);
+    setReviewerName('');
+    setReviewComment('');
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+      
+      {/* 1. Main Product Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        
+        {/* Left Column: Gallery */}
+        <div className="space-y-4">
+          <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative">
+            {product.discount_percent > 0 && (
+              <span className="absolute top-4 left-4 bg-accent text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg shadow z-10">
+                -{product.discount_percent}% OFF
+              </span>
+            )}
+            <img
+              src={activeImage}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          
+          {/* Thumbnails */}
+          {product.images.length > 1 && (
+            <div className="flex gap-4">
+              {product.images.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImage(imgUrl)}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white transition ${activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
+                >
+                  <img src={imgUrl} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Pricing & Options */}
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-widest text-gold font-bold">
+              {db.getBrands().find(b => b.id === product.brand_id)?.name || 'EUREKA LAB'}
+            </p>
+            <h1 className="font-serif-display text-3xl sm:text-4xl font-semibold text-dark">
+              {product.name}
+            </h1>
+            
+            {/* Reviews Summary */}
+            <div className="flex items-center gap-2 text-gold">
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={14}
+                    fill={i < Math.floor(product.rating) ? 'currentColor' : 'none'}
+                    className="text-gold"
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-bold text-dark">{product.rating}</span>
+              <span className="text-xs text-dark-muted font-light">({reviews.length} avis)</span>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between">
+            <div className="flex items-end gap-3">
+              {product.discount_percent > 0 ? (
+                <>
+                  <span className="text-2xl font-bold text-gold font-serif-display">
+                    {formatPrice(discountedUnitPrice)}
+                  </span>
+                  <span className="text-sm text-dark-muted line-through mb-1">
+                    {formatPrice(product.price_xof)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl font-bold text-dark font-serif-display">
+                  {formatPrice(product.price_xof)}
+                </span>
+              )}
+            </div>
+            
+            {/* Stock indicator */}
+            <div>
+              {isOutOfStock ? (
+                <span className="flex items-center gap-1 text-xs text-error font-bold bg-error/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                  <AlertTriangle size={12} /> Rupture
+                </span>
+              ) : isLowStock ? (
+                <span className="flex items-center gap-1 text-xs text-accent font-bold bg-accent/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                  <AlertTriangle size={12} /> {t('onlyLeft', { count: product.stock })}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-success font-bold bg-success/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                  <Check size={12} /> {t('inStock')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Skin metadata */}
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
+              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">Type de peau</span>
+              <span className="font-semibold text-dark mt-0.5 block">{product.skin_type === 'All' ? 'Tous les types' : product.skin_type}</span>
+            </div>
+            <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
+              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">Préoccupation</span>
+              <span className="font-semibold text-dark mt-0.5 block">{product.skin_concern}</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-dark-muted leading-relaxed font-light">
+            {product.description}
+          </p>
+
+          {/* Add to Cart Actions */}
+          {!isOutOfStock && (
+            <div className="space-y-4 pt-4 border-t border-gold/10">
+              <div className="flex gap-4 items-center">
+                {/* Quantity */}
+                <div className="flex items-center border border-gold/15 rounded-lg bg-bg-cream overflow-hidden">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-3 py-3 hover:text-gold transition font-bold"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 font-bold text-sm text-dark">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    className="px-3 py-3 hover:text-gold transition font-bold"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    addToCart(product, quantity);
+                    alert(`${quantity} article(s) ajouté(s) au panier !`);
+                  }}
+                  className="flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest py-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag size={16} />
+                  <span>{t('addToCart')}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* WhatsApp Direct Order button */}
+          <a
+            href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20je%20souhaite%20commander%20le%20produit%20"${product.name}"%20(SKU%3A%20${product.sku})`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4"
+          >
+            <MessageCircle size={16} />
+            <span>Acheter par WhatsApp (Livraison Gratuite)</span>
+          </a>
+
+          {/* Quick trust flags */}
+          <div className="grid grid-cols-3 gap-2 pt-6 text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
+            <span className="flex flex-col items-center gap-1.5">
+              <ShieldCheck size={14} className="text-gold" /> Authentique
+            </span>
+            <span className="flex flex-col items-center gap-1.5">
+              <Truck size={14} className="text-gold" /> COD Gratuit
+            </span>
+            <span className="flex flex-col items-center gap-1.5">
+              <RotateCcw size={14} className="text-gold" /> Retours 7 jours
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+
+      {/* 2. Frequently Bought Together Upsell */}
+      {bundleProducts.length > 0 && (
+        <section className="bg-bg-cream/40 border border-gold/15 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm">
+          <h3 className="font-serif-display font-semibold text-lg text-dark tracking-wider flex items-center gap-2">
+            <Sparkles size={18} className="text-gold animate-pulse" />
+            {t('frequentlyBought')}
+          </h3>
+          
+          <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-12">
+            
+            {/* Bundle Visual Flow */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* Product 1 (This) */}
+              <div className="text-center">
+                <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{product.name}</span>
+              </div>
+              <span className="text-xl text-gold font-bold">+</span>
+              
+              {/* Bundle 1 */}
+              <div className="text-center">
+                <img src={bundleProducts[0].images[0]} alt={bundleProducts[0].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{bundleProducts[0].name}</span>
+              </div>
+              <span className="text-xl text-gold font-bold">+</span>
+
+              {/* Bundle 2 */}
+              <div className="text-center">
+                <img src={bundleProducts[1].images[0]} alt={bundleProducts[1].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{bundleProducts[1].name}</span>
+              </div>
+            </div>
+
+            {/* Bundle Price Details & CTA */}
+            <div className="flex-1 text-center lg:text-left space-y-2">
+              <p className="text-xs text-dark-muted">
+                Achetez ces trois articles ensemble et bénéficiez d\'une <strong>remise spéciale de 10%</strong> sur le lot complet.
+              </p>
+              <div className="flex justify-center lg:justify-start items-baseline gap-3">
+                <span className="text-lg font-bold text-gold font-serif-display">{formatPrice(bundleDiscountedTotal)}</span>
+                <span className="text-xs text-dark-muted line-through">{formatPrice(bundleSubtotal)}</span>
+              </div>
+              
+              <button
+                onClick={handleAddBundleToCart}
+                disabled={bundleAdded}
+                className={`text-[10px] font-bold uppercase tracking-widest py-3 px-6 rounded-lg transition ${bundleAdded ? 'bg-success text-white' : 'bg-dark hover:bg-gold text-white shadow'}`}
+              >
+                {bundleAdded ? '✓ Lot Ajouté' : t('addBundle')}
+              </button>
+            </div>
+
+          </div>
+        </section>
+      )}
+
+
+      {/* 3. Description Tabs */}
+      <section className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 luxury-shadow-sm space-y-6">
+        
+        {/* Tabs Bar */}
+        <div className="flex overflow-x-auto border-b border-gold/10 no-scrollbar gap-6">
+          {[
+            { id: 'details', label: 'Détails du Produit' },
+            { id: 'ingredients', label: t('ingredients') },
+            { id: 'how-to', label: t('howToUse') },
+            { id: 'reviews', label: `${t('reviews')} (${reviews.length})` },
+            { id: 'delivery', label: t('shippingDelivery') }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`pb-3 text-xs uppercase tracking-widest font-semibold transition whitespace-nowrap ${activeTab === tab.id ? 'text-gold border-b-2 border-gold font-bold' : 'text-dark-muted hover:text-gold'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content renders */}
+        <div className="text-xs text-dark-muted leading-relaxed font-light min-h-[120px]">
+          {activeTab === 'details' && (
+            <div className="space-y-3 px-1">
+              <p>{product.description}</p>
+              <h4 className="font-semibold text-dark mt-4">Bénéfices :</h4>
+              <p>{product.benefits || 'Améliore la barrière protectrice cutanée, unifie et lisse le grain de peau.'}</p>
+            </div>
+          )}
+
+          {activeTab === 'ingredients' && (
+            <div className="space-y-2 px-1">
+              <p className="font-semibold text-dark">Formule authentique :</p>
+              <p className="italic">{product.ingredients || 'Liste non disponible. Formulée sans parabènes, sulfates ni phtalates.'}</p>
+            </div>
+          )}
+
+          {activeTab === 'how-to' && (
+            <div className="space-y-2 px-1">
+              <p className="font-semibold text-dark">Conseils d\'utilisation beauté :</p>
+              <p>{product.how_to_use || 'Appliquez délicatement matin et soir sur le visage propre en mouvements circulaires.'}</p>
+            </div>
+          )}
+
+          {activeTab === 'delivery' && (
+            <div className="space-y-4 px-1">
+              <p>Nous livrons dans toute l\'Afrique de l\'Ouest et du Centre (Côte d\'Ivoire, Sénégal, Cameroun, Bénin, Togo, etc.).</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-gold/10 p-3 rounded-lg">
+                  <h4 className="font-semibold text-dark">Abidjan & Dakar</h4>
+                  <p className="mt-1 text-[11px]">Livraison express en moins de 24 heures (1500 FCFA - 2000 FCFA).</p>
+                </div>
+                <div className="border border-gold/10 p-3 rounded-lg">
+                  <h4 className="font-semibold text-dark">Autres Régions & Pays</h4>
+                  <p className="mt-1 text-[11px]">Livraison standard en 2 à 4 jours ouvrés (2500 FCFA - 3500 FCFA).</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Active Tab: Reviews */}
+          {activeTab === 'reviews' && (
+            <div className="space-y-8">
+              
+              {/* Form submit review */}
+              <div className="bg-bg-cream/40 p-6 rounded-xl luxury-border space-y-4">
+                <h4 className="font-serif-display font-semibold text-sm text-dark tracking-wider">Laisser un avis sur le produit</h4>
+                
+                {reviewSubmitted ? (
+                  <p className="text-success text-xs font-semibold bg-success/10 px-3 py-2.5 rounded-lg">
+                    ✓ Merci ! Votre avis a été enregistré et publié avec succès.
+                  </p>
+                ) : (
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">{t('reviewName')}</label>
+                        <input
+                          type="text"
+                          required
+                          value={reviewerName}
+                          onChange={(e) => setReviewerName(e.target.value)}
+                          className="w-full bg-white rounded-lg px-3 py-2 border border-gold/15 text-dark"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">{t('reviewRating')}</label>
+                        <select
+                          value={reviewRating}
+                          onChange={(e) => setReviewRating(Number(e.target.value))}
+                          className="w-full bg-white rounded-lg px-2 py-2 border border-gold/15 text-dark"
+                        >
+                          <option value="5">5 Étoiles (Excellent)</option>
+                          <option value="4">4 Étoiles (Très bon)</option>
+                          <option value="3">3 Étoiles (Moyen)</option>
+                          <option value="2">2 Étoiles (Passable)</option>
+                          <option value="1">1 Étoiles (Décevant)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">{t('reviewComment')}</label>
+                      <textarea
+                        required
+                        rows={3}
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        className="w-full bg-white rounded-lg px-3 py-2 border border-gold/15 text-dark resize-none"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="bg-dark hover:bg-gold text-white text-[10px] font-bold uppercase tracking-widest px-6 py-2.5 rounded-lg transition"
+                    >
+                      {t('submitReview')}
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Reviews List */}
+              <div className="space-y-4">
+                {reviews.length === 0 ? (
+                  <p className="text-center py-4 italic text-dark-muted">Aucun avis rédigé pour le moment.</p>
+                ) : (
+                  reviews.map((rev) => (
+                    <div key={rev.id} className="border-b border-gold/5 pb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-dark text-xs flex items-center gap-1.5">
+                            {rev.customer_name}
+                            {rev.is_verified_buyer && (
+                              <span className="text-[9px] bg-success/15 text-success font-semibold px-2 py-0.5 rounded-full">
+                                {t('verifiedBuyer')}
+                              </span>
+                            )}
+                          </p>
+                          <div className="flex text-gold mt-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={10}
+                                fill={i < rev.rating ? 'currentColor' : 'none'}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-dark-muted font-light">{new Date(rev.created_at).toLocaleDateString('fr-FR')}</span>
+                      </div>
+                      <p className="mt-2 text-xs text-dark-muted font-light">{rev.comment}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+            </div>
+          )}
+        </div>
+
+      </section>
+
+
+      {/* 4. Related Products Grid */}
+      {relatedProducts.length > 0 && (
+        <section className="space-y-8">
+          <div className="text-center space-y-1">
+            <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">Pour compléter votre routine</span>
+            <h2 className="font-serif-display text-2xl font-medium tracking-wider text-dark">Produits Recommandés</h2>
+            <div className="w-12 h-0.5 bg-gold mx-auto mt-2" />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {relatedProducts.map((prod) => (
+              <div key={prod.id} className="group bg-white rounded-xl overflow-hidden luxury-shadow-sm hover:luxury-shadow border border-gold/5 flex flex-col justify-between transition-all duration-300">
+                <Link href={`/product/${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
+                  <img src={prod.images[0]} alt={prod.name} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
+                </Link>
+                <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-serif-display text-sm font-semibold text-dark truncate">{prod.name}</h3>
+                    <p className="text-gold font-bold text-xs mt-1">{formatPrice(prod.price_xof)}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      addToCart(prod, 1);
+                      alert(`${prod.name} ajouté !`);
+                    }}
+                    className="w-full bg-bg-cream hover:bg-gold text-dark hover:text-white border border-gold/15 text-[9px] font-bold uppercase py-2 rounded transition"
+                  >
+                    Ajouter au panier
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+    </div>
+  );
+}

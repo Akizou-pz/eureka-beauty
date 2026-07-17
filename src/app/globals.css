@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #C9A227;
+  --color-gold-hover: #b08f20;
+  --color-bg-cream: #F8F5F0;
+  --color-dark: #222222;
+  --color-dark-muted: #666666;
+  --color-accent: #D97706;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+
+  --font-serif: "Playfair Display", Cormorant Garamond, Georgia, serif;
+  --font-sans: "Inter", Outfit, system-ui, sans-serif;
+}
+
+:root {
+  --background: #F8F5F0;
+  --foreground: #222222;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Luxury UI Utility Styles */
+.font-serif-display {
+  font-family: var(--font-serif);
+}
+
+.luxury-shadow {
+  box-shadow: 0 10px 40px -10px rgba(34, 34, 34, 0.05);
+}
+
+.luxury-shadow-sm {
+  box-shadow: 0 4px 20px -5px rgba(34, 34, 34, 0.03);
+}
+
+.luxury-border {
+  border: 1px solid rgba(201, 162, 39, 0.12);
+}
+
+.luxury-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.luxury-glass-dark {
+  background: rgba(34, 34, 34, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #E6C86C 0%, #C9A227 50%, #A37F15 100%);
+}
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, #E6C86C 0%, #C9A227 50%, #A37F15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom styling for inputs */
+input, select, textarea {
+  outline: none;
+}
+
+/* Page animations */
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

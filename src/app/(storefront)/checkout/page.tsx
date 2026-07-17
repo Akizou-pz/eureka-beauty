@@ -1,0 +1,635 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useLangCurr } from '@/context/LanguageCurrencyContext';
+import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import { db, DeliveryZone, Order } from '@/lib/db';
+import { 
+  ShoppingBag, 
+  CheckCircle, 
+  AlertCircle, 
+  Truck, 
+  CreditCard, 
+  Phone, 
+  MessageSquare,
+  Sparkles,
+  Ticket
+} from 'lucide-react';
+
+export default function CheckoutPage() {
+  const router = useRouter();
+  const { formatPrice, t } = useLangCurr();
+  const { 
+    cart, 
+    appliedCoupon, 
+    shippingZone, 
+    setShippingZone, 
+    getCartSubtotal, 
+    getCartDiscount, 
+    getCartTotal, 
+    clearCart 
+  } = useCart();
+  const { user, updateProfile } = useAuth();
+
+  // Order placement status
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+
+  // Form Fields
+  const [firstName, setFirstName] = useState(user?.first_name || '');
+  const [lastName, setLastName] = useState(user?.last_name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
+  const [country, setCountry] = useState('Côte d\'Ivoire');
+  const [city, setCity] = useState('Abidjan');
+  const [addressLine, setAddressLine] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'MobileMoney' | 'Card'>('COD');
+
+  // Loyalty rewards state
+  const [useLoyalty, setUseLoyalty] = useState(false);
+  const loyaltyPointsBalance = user?.loyalty_points || 0;
+  const loyaltyDiscountValue = loyaltyPointsBalance * 10; // 1 point = 10 FCFA discount
+
+  // Available zones based on country
+  const [availableZones, setAvailableZones] = useState<DeliveryZone[]>([]);
+  const [selectedZoneId, setSelectedZoneId] = useState('');
+
+  // Synchronize Auth user details if logged in
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.first_name || '');
+      setLastName(user.last_name || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+      setWhatsapp(user.whatsapp || '');
+    }
+  }, [user]);
+
+  // Load and filter shipping zones based on Country/City selection
+  useEffect(() => {
+    const allZones = db.getDeliveryZones();
+    const filtered = allZones.filter(
+      (z) => z.country.toLowerCase() === country.toLowerCase()
+    );
+    setAvailableZones(filtered);
+    
+    // Select first available zone or fallback
+    if (filtered.length > 0) {
+      setSelectedZoneId(filtered[0].id);
+      setShippingZone(filtered[0]);
+    } else {
+      setSelectedZoneId('');
+      setShippingZone(null);
+    }
+  }, [country]);
+
+  // Update shipping zone when manual dropdown changes
+  const handleZoneChange = (zoneId: string) => {
+    setSelectedZoneId(zoneId);
+    const zone = availableZones.find((z) => z.id === zoneId);
+    setShippingZone(zone || null);
+  };
+
+  // Perform calculations
+  const subtotal = getCartSubtotal();
+  const couponDiscount = getCartDiscount();
+  const loyaltyDiscount = useLoyalty ? Math.min(loyaltyDiscountValue, subtotal - couponDiscount) : 0;
+  const shippingCost = shippingZone ? shippingZone.cost_xof : 0;
+  
+  const finalDiscount = couponDiscount + loyaltyDiscount;
+  const finalTotal = Math.max(0, subtotal - finalDiscount + shippingCost);
+
+  const handleSubmitOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    if (!firstName || !lastName || !email || !phone || !addressLine) {
+      alert('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate Payment Gateway if Card/Mobile Money is chosen
+    if (paymentMethod !== 'COD') {
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // simulate gateway handshakes
+    }
+
+    // Prepare items array
+    const orderItems = cart.map((item) => ({
+      id: 'ord-itm-' + Math.random().toString(36).substr(2, 9),
+      product_id: item.product_id,
+      product_name: item.name,
+      sku: item.sku,
+      quantity: item.quantity,
+      unit_price_xof: item.price_xof * (1 - item.discount_percent / 100),
+      total_price_xof: item.price_xof * (1 - item.discount_percent / 100) * item.quantity,
+    }));
+
+    const orderData = {
+      customer_id: user?.id || null,
+      coupon_id: appliedCoupon?.id || null,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      whatsapp,
+      country,
+      city,
+      address_line: addressLine,
+      delivery_instructions: deliveryInstructions,
+      shipping_cost_xof: shippingCost,
+      subtotal_xof: subtotal,
+      discount_xof: finalDiscount,
+      total_xof: finalTotal,
+      currency: 'XOF',
+      payment_method: paymentMethod,
+      items: orderItems,
+    };
+
+    try {
+      const order = db.createOrder(orderData);
+      setPlacedOrder(order);
+
+      // Reward loyalty points (5% of subtotal, rounded)
+      if (user) {
+        const earnedPoints = Math.round(subtotal * 0.005);
+        // deduct applied points, add earned points
+        const updatedPoints = Math.max(0, loyaltyPointsBalance - (useLoyalty ? loyaltyPointsBalance : 0)) + earnedPoints;
+        updateProfile({ loyalty_points: updatedPoints });
+      }
+
+      clearCart();
+    } catch (err) {
+      alert('Une erreur est survenue lors de la création de la commande.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // SUCCESS SCREEN
+  if (placedOrder) {
+    const whatsappMessage = encodeURIComponent(
+      `Bonjour Eureka Beauty, j'ai passé la commande #${placedOrder.order_number} pour un montant total de ${formatPrice(placedOrder.total_xof)}. Veuillez valider l'envoi s'il vous plaît.`
+    );
+
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-8 fade-in">
+        <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center text-success mx-auto">
+          <CheckCircle size={40} />
+        </div>
+        
+        <div className="space-y-3">
+          <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">Commande Validée</span>
+          <h1 className="font-serif-display text-3xl font-medium text-dark">
+            Merci Pour Votre Achat !
+          </h1>
+          <p className="text-xs text-dark-muted leading-relaxed max-w-sm mx-auto font-light">
+            Votre commande a été enregistrée avec succès sous le numéro <strong>{placedOrder.order_number}</strong>. Un e-mail de confirmation vous a été envoyé.
+          </p>
+        </div>
+
+        {/* Order Details Card */}
+        <div className="bg-white border border-gold/10 rounded-2xl p-6 text-left space-y-4 luxury-shadow-sm">
+          <h3 className="font-serif-display text-sm font-semibold border-b border-gold/5 pb-2 text-dark uppercase tracking-wider">Récapitulatif de Livraison</h3>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <p className="text-dark-muted">Destinataire :</p>
+              <p className="font-semibold text-dark mt-0.5">{placedOrder.first_name} {placedOrder.last_name}</p>
+            </div>
+            <div>
+              <p className="text-dark-muted">Téléphone :</p>
+              <p className="font-semibold text-dark mt-0.5">{placedOrder.phone}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-dark-muted">Adresse de livraison :</p>
+              <p className="font-semibold text-dark mt-0.5">{placedOrder.address_line}, {placedOrder.city}, {placedOrder.country}</p>
+            </div>
+            <div>
+              <p className="text-dark-muted">Méthode de Paiement :</p>
+              <p className="font-semibold text-gold mt-0.5 uppercase">{placedOrder.payment_method === 'COD' ? 'Espèces à la Livraison (COD)' : placedOrder.payment_method}</p>
+            </div>
+            <div>
+              <p className="text-dark-muted">Total Payé :</p>
+              <p className="font-semibold text-dark mt-0.5">{formatPrice(placedOrder.total_xof)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Fast Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href={`https://wa.me/22893866752?text=${whatsappMessage}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 rounded-lg transition shadow-md flex items-center justify-center gap-2"
+          >
+            <MessageSquare size={16} />
+            <span>Valider sur WhatsApp</span>
+          </a>
+          
+          <Link
+            href="/track"
+            className="bg-dark hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 rounded-lg transition flex items-center justify-center gap-2"
+          >
+            <span>Suivre ma commande</span>
+          </Link>
+        </div>
+
+        <Link href="/shop" className="text-xs text-gold underline font-bold uppercase tracking-wider block hover:text-gold-hover transition">
+          Retourner à la boutique
+        </Link>
+      </div>
+    );
+  }
+
+  // EMPTY CHECKOUT REDIRECT
+  if (cart.length === 0) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-12 h-12 bg-bg-cream rounded-full flex items-center justify-center text-gold mx-auto border border-gold/10">
+          <ShoppingBag size={20} />
+        </div>
+        <h3 className="font-serif-display text-lg font-semibold text-dark">Votre panier est vide</h3>
+        <p className="text-xs text-dark-muted leading-relaxed font-light">
+          Vous devez ajouter au moins un produit cosmétique ou soin au panier avant de passer à l\'étape de paiement.
+        </p>
+        <Link
+          href="/shop"
+          className="bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest px-6 py-3 rounded-lg transition inline-block"
+        >
+          Parcourir la boutique
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <h1 className="font-serif-display text-3xl font-medium tracking-wide text-dark border-b border-gold/10 pb-6 mb-8">
+        Finaliser la Commande
+      </h1>
+
+      <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Left 7 Columns: Delivery & Payment Forms */}
+        <div className="lg:col-span-7 space-y-8">
+          
+          {/* Section 1: Customer details */}
+          <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-4 luxury-shadow-sm">
+            <h2 className="font-serif-display text-lg font-semibold text-dark uppercase tracking-wider flex items-center gap-2 border-b border-gold/5 pb-2">
+              <span className="text-gold">1.</span> {t('billingDetails')}
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('firstName')} <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('lastName')} <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('phone')} <span className="text-error">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+225 07 12 34 56"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('whatsapp')}
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+225 07 12 34 56"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                {t('email')} <span className="text-error">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+              />
+            </div>
+          </div>
+
+          {/* Section 2: Address details */}
+          <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-4 luxury-shadow-sm">
+            <h2 className="font-serif-display text-lg font-semibold text-dark uppercase tracking-wider flex items-center gap-2 border-b border-gold/5 pb-2">
+              <span className="text-gold">2.</span> Destination de Livraison
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('country')} <span className="text-error">*</span>
+                </label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
+                >
+                  <option value="Côte d'Ivoire">Côte d'Ivoire (XOF)</option>
+                  <option value="Senegal">Sénégal (XOF)</option>
+                  <option value="Benin">Bénin (XOF)</option>
+                  <option value="Togo">Togo (XOF)</option>
+                  <option value="Cameroon">Cameroun (XAF)</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  {t('city')} <span className="text-error">*</span>
+                </label>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
+                >
+                  {country === "Côte d'Ivoire" ? (
+                    <>
+                      <option value="Abidjan">Abidjan</option>
+                      <option value="Yamoussoukro">Yamoussoukro</option>
+                    </>
+                  ) : country === "Senegal" ? (
+                    <option value="Dakar">Dakar</option>
+                  ) : country === "Cameroon" ? (
+                    <option value="Douala">Douala</option>
+                  ) : country === "Benin" ? (
+                    <option value="Cotonou">Cotonou</option>
+                  ) : (
+                    <option value="Lomé">Lomé</option>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* Delivery option dropdown */}
+            {availableZones.length > 0 && (
+              <div>
+                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                  Zone & Tarifs de Livraison <span className="text-error">*</span>
+                </label>
+                <select
+                  value={selectedZoneId}
+                  onChange={(e) => handleZoneChange(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
+                >
+                  {availableZones.map((z) => (
+                    <option key={z.id} value={z.id}>
+                      {z.zone_name} - {formatPrice(z.cost_xof)} ({z.min_days}-{z.max_days} jours)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                {t('address')} <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Ex: Cocody Mermoz, Rue C20, Villa 45"
+                value={addressLine}
+                onChange={(e) => setAddressLine(e.target.value)}
+                className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                {t('deliveryNotes')}
+              </label>
+              <textarea
+                rows={2}
+                value={deliveryInstructions}
+                onChange={(e) => setDeliveryInstructions(e.target.value)}
+                className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2 border border-gold/15 text-dark resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Section 3: Payment details */}
+          <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-4 luxury-shadow-sm">
+            <h2 className="font-serif-display text-lg font-semibold text-dark uppercase tracking-wider flex items-center gap-2 border-b border-gold/5 pb-2">
+              <span className="text-gold">3.</span> {t('paymentMethod')}
+            </h2>
+
+            <div className="space-y-3">
+              {/* COD: Default Cash on Delivery */}
+              <label className="flex items-start gap-4 p-4 rounded-xl border border-gold cursor-pointer bg-gold/5 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'COD'}
+                  onChange={() => setPaymentMethod('COD')}
+                  className="mt-1 accent-gold"
+                />
+                <div className="text-xs">
+                  <span className="font-bold text-dark flex items-center gap-2">
+                    <Truck size={16} className="text-gold" />
+                    Paiement à la livraison (COD) - Recommandé
+                  </span>
+                  <p className="text-dark-muted font-light mt-1">Payez en espèces ou via Mobile Money directement auprès du livreur lors de la réception de votre colis.</p>
+                </div>
+              </label>
+
+              {/* Mobile Money simulation */}
+              <label className="flex items-start gap-4 p-4 rounded-xl border border-gold/10 cursor-pointer bg-white hover:bg-bg-cream/20 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'MobileMoney'}
+                  onChange={() => setPaymentMethod('MobileMoney')}
+                  className="mt-1 accent-gold"
+                />
+                <div className="text-xs">
+                  <span className="font-bold text-dark flex items-center gap-2">
+                    <Phone size={16} className="text-gold" />
+                    Mobile Money Express (Wave, Orange, MTN, Moov)
+                  </span>
+                  <p className="text-dark-muted font-light mt-1">Payez instantanément avec votre portefeuille Wave ou Mobile Money. Simulation de passerelle Paystack.</p>
+                </div>
+              </label>
+
+              {/* Card payment */}
+              <label className="flex items-start gap-4 p-4 rounded-xl border border-gold/10 cursor-pointer bg-white hover:bg-bg-cream/20 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'Card'}
+                  onChange={() => setPaymentMethod('Card')}
+                  className="mt-1 accent-gold"
+                />
+                <div className="text-xs">
+                  <span className="font-bold text-dark flex items-center gap-2">
+                    <CreditCard size={16} className="text-gold" />
+                    Carte Bancaire Internationale (Visa, Mastercard)
+                  </span>
+                  <p className="text-dark-muted font-light mt-1">Paiement sécurisé via Stripe. Convient pour les paiements locaux et internationaux.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right 5 Columns: Order Summary Card */}
+        <div className="lg:col-span-5 space-y-6">
+          
+          <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm sticky top-24">
+            <h3 className="font-serif-display font-semibold text-lg text-dark border-b border-gold/10 pb-3 flex items-center gap-2">
+              <ShoppingBag size={18} className="text-gold" /> Votre Panier
+            </h3>
+
+            {/* List products in cart */}
+            <div className="space-y-4 max-h-48 overflow-y-auto no-scrollbar">
+              {cart.map((item) => (
+                <div key={item.product_id} className="flex gap-3 justify-between items-center text-xs">
+                  <div className="flex gap-2 items-center truncate">
+                    <img src={item.image} alt={item.name} className="w-8 h-8 object-cover rounded bg-bg-cream" />
+                    <span className="truncate max-w-[150px] font-medium text-dark">{item.name} (x{item.quantity})</span>
+                  </div>
+                  <span className="font-semibold text-gold font-serif-display">
+                    {formatPrice(item.price_xof * (1 - item.discount_percent / 100) * item.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Loyalty points toggle */}
+            {user && loyaltyPointsBalance > 0 && (
+              <div className="bg-bg-cream p-4 rounded-xl border border-gold/15 text-xs space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-dark flex items-center gap-1">
+                    <Sparkles size={12} className="text-gold" /> Points de fidélité
+                  </span>
+                  <span className="bg-gold/15 text-gold px-2 py-0.5 rounded font-bold">{loyaltyPointsBalance} pts</span>
+                </div>
+                <p className="text-[10px] text-dark-muted leading-relaxed">
+                  Vous disposez d\'une remise de {formatPrice(loyaltyDiscountValue)}. Voulez-vous l\'appliquer ?
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setUseLoyalty(!useLoyalty)}
+                  className={`w-full py-2 rounded text-[10px] uppercase tracking-widest font-bold transition border ${useLoyalty ? 'bg-gold text-white border-transparent' : 'bg-white text-dark border-gold/25'}`}
+                >
+                  {useLoyalty ? '✓ Points Appliqués' : 'Appliquer la remise'}
+                </button>
+              </div>
+            )}
+
+            {/* Coupon display */}
+            {appliedCoupon && (
+              <div className="flex justify-between items-center bg-gold/5 border border-dashed border-gold px-3 py-2 rounded-lg text-xs text-gold">
+                <span className="flex items-center gap-1.5"><Ticket size={14} /> Coupon: <strong>{appliedCoupon.code}</strong></span>
+                <span className="font-bold">-{appliedCoupon.discount_percent}%</span>
+              </div>
+            )}
+
+            {/* Price Calculations */}
+            <div className="space-y-3 text-xs text-dark-muted border-t border-gold/10 pt-4">
+              <div className="flex justify-between">
+                <span>Sous-total articles</span>
+                <span className="font-semibold text-dark">{formatPrice(subtotal)}</span>
+              </div>
+              
+              {appliedCoupon && (
+                <div className="flex justify-between text-gold font-bold">
+                  <span>Remise Coupon ({appliedCoupon.discount_percent}%)</span>
+                  <span>-{formatPrice(couponDiscount)}</span>
+                </div>
+              )}
+
+              {useLoyalty && (
+                <div className="flex justify-between text-gold font-bold">
+                  <span>Remise Fidélité</span>
+                  <span>-{formatPrice(loyaltyDiscount)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <span>Frais de livraison</span>
+                <span className="font-semibold text-dark">{shippingCost > 0 ? formatPrice(shippingCost) : 'Calculé'}</span>
+              </div>
+
+              {shippingZone && (
+                <div className="text-[10px] text-dark-muted leading-relaxed font-light">
+                  Option: <span className="font-bold">{shippingZone.zone_name}</span> ({shippingZone.min_days}-{shippingZone.max_days} jours).
+                </div>
+              )}
+
+              <div className="flex justify-between border-t border-gold/10 pt-4 text-sm text-dark font-bold">
+                <span>Total de la commande</span>
+                <span className="text-gold font-serif-display font-semibold text-lg">
+                  {formatPrice(finalTotal)}
+                </span>
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-gold hover:bg-gold-hover disabled:bg-gold/40 text-white text-xs font-semibold uppercase tracking-widest py-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white" />
+                  <span>Traitement en cours...</span>
+                </>
+              ) : (
+                <span>{t('placeOrder')}</span>
+              )}
+            </button>
+          </div>
+
+        </div>
+
+      </form>
+    </div>
+  );
+}
