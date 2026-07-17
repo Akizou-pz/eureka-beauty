@@ -173,9 +173,22 @@ export default function CheckoutPage() {
 
   // SUCCESS SCREEN
   if (placedOrder) {
-    const whatsappMessage = encodeURIComponent(
-      `Bonjour Eureka Beauty, j'ai passé la commande #${placedOrder.order_number} pour un montant total de ${formatPrice(placedOrder.total_xof)}. Veuillez valider l'envoi s'il vous plaît.`
-    );
+    const productsList = placedOrder.items
+      .map((item) => `* ${item.product_name} x${item.quantity} — ${formatPrice(item.unit_price_xof * item.quantity)}`)
+      .join('\n');
+
+    const rawMessage = `Nouvelle commande \u2728 Eureka Beauty Africa
+\uD83D\uDC64 Client : ${placedOrder.first_name.toUpperCase()} ${placedOrder.last_name.toUpperCase()}
+\uD83D\uDCF1 Téléphone : ${placedOrder.phone}
+\uD83D\uDCCD Adresse : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
+\uD83D\uDE9A Livraison : ${placedOrder.country} — ${placedOrder.city} (${placedOrder.shipping_cost_xof === 0 ? 'gratuite' : formatPrice(placedOrder.shipping_cost_xof)})
+Produits :
+${productsList}
+Sous-total : ${formatPrice(placedOrder.subtotal_xof)}
+${placedOrder.discount_xof > 0 ? `Réduction : -${formatPrice(placedOrder.discount_xof)}\n` : ''}Livraison : ${placedOrder.shipping_cost_xof === 0 ? 'Gratuite' : formatPrice(placedOrder.shipping_cost_xof)}
+Total : ${formatPrice(placedOrder.total_xof)}`;
+
+    const whatsappMessage = encodeURIComponent(rawMessage);
 
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-8 fade-in">
