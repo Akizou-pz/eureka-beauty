@@ -7,13 +7,13 @@ import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { db, DeliveryZone, Order } from '@/lib/db';
-import { 
-  ShoppingBag, 
-  CheckCircle, 
-  AlertCircle, 
-  Truck, 
-  CreditCard, 
-  Phone, 
+import {
+  ShoppingBag,
+  CheckCircle,
+  AlertCircle,
+  Truck,
+  CreditCard,
+  Phone,
   MessageSquare,
   Sparkles,
   Ticket
@@ -22,15 +22,15 @@ import {
 export default function CheckoutPage() {
   const router = useRouter();
   const { formatPrice, t } = useLangCurr();
-  const { 
-    cart, 
-    appliedCoupon, 
-    shippingZone, 
-    setShippingZone, 
-    getCartSubtotal, 
-    getCartDiscount, 
-    getCartTotal, 
-    clearCart 
+  const {
+    cart,
+    appliedCoupon,
+    shippingZone,
+    setShippingZone,
+    getCartSubtotal,
+    getCartDiscount,
+    getCartTotal,
+    clearCart
   } = useCart();
   const { user, updateProfile } = useAuth();
 
@@ -55,9 +55,7 @@ export default function CheckoutPage() {
   const loyaltyPointsBalance = user?.loyalty_points || 0;
   const loyaltyDiscountValue = loyaltyPointsBalance * 10; // 1 point = 10 FCFA discount
 
-  // Available zones based on country
-  const [availableZones, setAvailableZones] = useState<DeliveryZone[]>([]);
-  const [selectedZoneId, setSelectedZoneId] = useState('');
+  const [customCity, setCustomCity] = useState('');
 
   // Synchronize Auth user details if logged in
   useEffect(() => {
@@ -70,37 +68,53 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  // Load and filter shipping zones based on Country/City selection
+  // Reset city selection when country changes
   useEffect(() => {
-    const allZones = db.getDeliveryZones();
-    const filtered = allZones.filter(
-      (z) => z.country.toLowerCase() === country.toLowerCase()
-    );
-    setAvailableZones(filtered);
-    
-    // Select first available zone or fallback
-    if (filtered.length > 0) {
-      setSelectedZoneId(filtered[0].id);
-      setShippingZone(filtered[0]);
-    } else {
-      setSelectedZoneId('');
-      setShippingZone(null);
-    }
+    if (country === "Côte d'Ivoire") setCity("Abidjan");
+    else if (country === "Senegal") setCity("Dakar");
+    else if (country === "Cameroon") setCity("Douala");
+    else if (country === "Benin") setCity("Cotonou");
+    else if (country === "Mali") setCity("Bamako");
+    else if (country === "Burkina Faso") setCity("Ouagadougou");
+    else setCity("Lomé");
+
+    setCustomCity("");
   }, [country]);
 
-  // Update shipping zone when manual dropdown changes
-  const handleZoneChange = (zoneId: string) => {
-    setSelectedZoneId(zoneId);
-    const zone = availableZones.find((z) => z.id === zoneId);
-    setShippingZone(zone || null);
-  };
+  // Synchronize shipping cost to the CartContext dynamically
+  useEffect(() => {
+    if (city === 'Autre') {
+      const cost = db.getCustomShippingCost(country);
+      setShippingZone({
+        id: 'custom-paid-zone',
+        country,
+        city: customCity || 'Autre',
+        zone_name: `Tarif standard (${country})`,
+        cost_xof: cost,
+        shipping_type: 'Standard',
+        min_days: 2,
+        max_days: 5,
+      });
+    } else {
+      setShippingZone({
+        id: 'custom-free-zone',
+        country,
+        city,
+        zone_name: `Livraison gratuite (${city})`,
+        cost_xof: 0,
+        shipping_type: 'Standard',
+        min_days: 1,
+        max_days: 3,
+      });
+    }
+  }, [country, city, customCity]);
 
   // Perform calculations
   const subtotal = getCartSubtotal();
   const couponDiscount = getCartDiscount();
   const loyaltyDiscount = useLoyalty ? Math.min(loyaltyDiscountValue, subtotal - couponDiscount) : 0;
   const shippingCost = shippingZone ? shippingZone.cost_xof : 0;
-  
+
   const finalDiscount = couponDiscount + loyaltyDiscount;
   const finalTotal = Math.max(0, subtotal - finalDiscount + shippingCost);
 
@@ -139,7 +153,7 @@ export default function CheckoutPage() {
       phone,
       whatsapp,
       country,
-      city,
+      city: city === 'Autre' ? customCity : city,
       address_line: addressLine,
       delivery_instructions: deliveryInstructions,
       shipping_cost_xof: shippingCost,
@@ -195,7 +209,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
         <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center text-success mx-auto">
           <CheckCircle size={40} />
         </div>
-        
+
         <div className="space-y-3">
           <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">Commande Validée</span>
           <h1 className="font-serif-display text-3xl font-medium text-dark">
@@ -244,7 +258,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
             <MessageSquare size={16} />
             <span>Valider sur WhatsApp</span>
           </a>
-          
+
           <Link
             href="/track"
             className="bg-dark hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 rounded-lg transition flex items-center justify-center gap-2"
@@ -288,10 +302,10 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
       </h1>
 
       <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
+
         {/* Left 7 Columns: Delivery & Payment Forms */}
         <div className="lg:col-span-7 space-y-8">
-          
+
           {/* Section 1: Customer details */}
           <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-4 luxury-shadow-sm">
             <h2 className="font-serif-display text-lg font-semibold text-dark uppercase tracking-wider flex items-center gap-2 border-b border-gold/5 pb-2">
@@ -388,16 +402,23 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                   <option value="Benin">Bénin (XOF)</option>
                   <option value="Togo">Togo (XOF)</option>
                   <option value="Cameroon">Cameroun (XAF)</option>
+                  <option value="Mali">Mali(XOF)</option>
+                  <option value="Burkina Faso">Burkina Faso(XOF)</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
                   {t('city')} <span className="text-error">*</span>
                 </label>
                 <select
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    if (e.target.value !== 'Autre') {
+                      setCustomCity('');
+                    }
+                  }}
                   className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
                 >
                   {country === "Côte d'Ivoire" ? (
@@ -408,33 +429,48 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                   ) : country === "Senegal" ? (
                     <option value="Dakar">Dakar</option>
                   ) : country === "Cameroon" ? (
-                    <option value="Douala">Douala</option>
+                    <>
+                      <option value="Douala">Douala</option>
+                      <option value="Yaoundé">Yaoundé</option>
+                    </>
                   ) : country === "Benin" ? (
                     <option value="Cotonou">Cotonou</option>
+                  ) : country === "Mali" ? (
+                    <option value="Bamako">Bamako</option>
+                  ) : country === "Burkina Faso" ? (
+                    <option value="Ouagadougou">Ouagadougou</option>
                   ) : (
                     <option value="Lomé">Lomé</option>
                   )}
+                  <option value="Autre">Autre (Saisir manuellement)</option>
                 </select>
               </div>
             </div>
 
-            {/* Delivery option dropdown */}
-            {availableZones.length > 0 && (
+            {city === 'Autre' && (
               <div>
                 <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                  Zone & Tarifs de Livraison <span className="text-error">*</span>
+                  Nom de votre ville <span className="text-error">*</span>
                 </label>
-                <select
-                  value={selectedZoneId}
-                  onChange={(e) => handleZoneChange(e.target.value)}
-                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-2.5 py-2.5 border border-gold/15 text-dark font-medium"
-                >
-                  {availableZones.map((z) => (
-                    <option key={z.id} value={z.id}>
-                      {z.zone_name} - {formatPrice(z.cost_xof)} ({z.min_days}-{z.max_days} jours)
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  required
+                  placeholder="Saisissez le nom de votre ville"
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+                />
+              </div>
+            )}
+
+            {/* Display Shipping Alert */}
+            {city === 'Autre' ? (
+              <div className="bg-gold/5 border border-gold/20 p-3.5 rounded-xl text-xs text-dark font-light leading-relaxed">
+                🚚 <strong>Tarif livraison hors capitale ({country}) :</strong> {formatPrice(db.getCustomShippingCost(country))}. Ce montant sera ajouté à votre total.
+              </div>
+            ) : (
+              <div className="bg-success/5 border border-success/20 p-3.5 rounded-xl text-xs text-success font-medium">
+                ✓ <strong>Livraison Gratuite</strong> pour la capitale/ville sélectionnée ({city}) !
               </div>
             )}
 
@@ -532,7 +568,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
 
         {/* Right 5 Columns: Order Summary Card */}
         <div className="lg:col-span-5 space-y-6">
-          
+
           <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm sticky top-24">
             <h3 className="font-serif-display font-semibold text-lg text-dark border-b border-gold/10 pb-3 flex items-center gap-2">
               <ShoppingBag size={18} className="text-gold" /> Votre Panier
@@ -589,7 +625,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                 <span>Sous-total articles</span>
                 <span className="font-semibold text-dark">{formatPrice(subtotal)}</span>
               </div>
-              
+
               {appliedCoupon && (
                 <div className="flex justify-between text-gold font-bold">
                   <span>Remise Coupon ({appliedCoupon.discount_percent}%)</span>

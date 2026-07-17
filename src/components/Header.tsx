@@ -7,18 +7,18 @@ import { useLangCurr, Language, Currency } from '@/context/LanguageCurrencyConte
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { db, Product } from '@/lib/db';
-import { 
-  ShoppingBag, 
-  User, 
-  Search, 
-  Menu, 
-  X, 
-  Heart, 
-  Trash2, 
-  Plus, 
-  Minus, 
-  Globe, 
-  MessageCircle, 
+import {
+  ShoppingBag,
+  User,
+  Search,
+  Menu,
+  X,
+  Heart,
+  Trash2,
+  Plus,
+  Minus,
+  Globe,
+  MessageCircle,
   Sparkles,
   ArrowRight,
   TrendingUp,
@@ -30,14 +30,14 @@ export default function Header() {
   const pathname = usePathname();
   const { language, currency, setLanguage, setCurrency, t, formatPrice } = useLangCurr();
   const { user, logout } = useAuth();
-  const { 
-    cart, 
-    removeFromCart, 
-    updateQuantity, 
-    getCartSubtotal, 
-    appliedCoupon, 
-    applyCouponCode, 
-    removeCoupon 
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    getCartSubtotal,
+    appliedCoupon,
+    applyCouponCode,
+    removeCoupon
   } = useCart();
 
   // Navigation states
@@ -124,11 +124,11 @@ export default function Header() {
     <>
       {/* Top Promotion bar */}
       <div className="bg-dark text-white text-center py-2 px-4 text-xs font-light tracking-widest border-b border-gold/15 flex items-center justify-between md:justify-center gap-4">
-        <span>LIVRAISON GRATUITE DÈS 20 000 FCFA | SHIPPING WORLDWIDE</span>
+        <span>LIVRAISON GRATUITE CENTRE VILLE | EXPEDITION POSSIBLE PARTOUT A L'INTERIEUR</span>
         <div className="flex gap-4 text-[10px] hidden md:flex">
           <Link href="/track" className="hover:text-gold transition">Suivi</Link>
           <span>|</span>
-          <a href="https://wa.me/22507070707" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition flex items-center gap-1">
+          <a href="https://wa.me/22893866752" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition flex items-center gap-1">
             WhatsApp Commandes
           </a>
         </div>
@@ -137,7 +137,7 @@ export default function Header() {
       {/* Main Glassmorphism Header */}
       <header className="sticky top-0 z-40 w-full luxury-glass border-b border-gold/10 luxury-shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          
+
           {/* Logo & Tagline */}
           <div className="flex items-center gap-2">
             <button
@@ -147,7 +147,7 @@ export default function Header() {
             >
               <Menu size={24} />
             </button>
-            
+
             <Link href="/" className="flex flex-col">
               <span className="font-serif-display text-2xl font-semibold tracking-wider text-dark hover:opacity-90 transition">
                 EUREKA <span className="text-gold font-normal">BEAUTY</span>
@@ -160,33 +160,33 @@ export default function Header() {
 
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium uppercase tracking-widest">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className={`hover:text-gold transition ${pathname === '/' ? 'text-gold border-b border-gold/40' : 'text-dark'}`}
             >
               {t('home')}
             </Link>
-            <Link 
-              href="/shop" 
+            <Link
+              href="/shop"
               className={`hover:text-gold transition ${pathname.startsWith('/shop') ? 'text-gold border-b border-gold/40' : 'text-dark'}`}
             >
               {t('shop')}
             </Link>
-            <Link 
-              href="/blog" 
+            <Link
+              href="/blog"
               className={`hover:text-gold transition ${pathname.startsWith('/blog') ? 'text-gold border-b border-gold/40' : 'text-dark'}`}
             >
               {t('blog')}
             </Link>
-            <Link 
-              href="/track" 
+            <Link
+              href="/track"
               className={`hover:text-gold transition ${pathname.startsWith('/track') ? 'text-gold border-b border-gold/40' : 'text-dark'}`}
             >
               {t('trackOrder')}
             </Link>
             {user?.role === 'admin' && (
-              <Link 
-                href="/admin" 
+              <Link
+                href="/admin"
                 className="text-gold hover:text-gold-hover transition flex items-center gap-1 font-bold"
               >
                 <LayoutDashboard size={14} />
@@ -197,17 +197,17 @@ export default function Header() {
 
           {/* Action icons */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            
+
             {/* Live Search Trigger & Box */}
             <div ref={searchRef} className="relative">
-              <button 
-                onClick={() => setSearchOpen(!searchOpen)} 
+              <button
+                onClick={() => setSearchOpen(!searchOpen)}
                 className="text-dark hover:text-gold transition p-2"
                 aria-label="Recherche"
               >
                 <Search size={20} />
               </button>
-              
+
               {searchOpen && (
                 <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl luxury-shadow luxury-border p-4 z-50 fade-in">
                   <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-3">
@@ -223,23 +223,23 @@ export default function Header() {
                       OK
                     </button>
                   </form>
-                  
+
                   {searchResults.length > 0 ? (
                     <div className="space-y-3">
                       <div className="text-[10px] uppercase tracking-widest text-gold font-bold flex items-center gap-1">
                         <TrendingUp size={12} /> Suggestions
                       </div>
                       {searchResults.map((product) => (
-                        <Link 
+                        <Link
                           key={product.id}
                           href={`/product/${product.slug}`}
                           onClick={() => setSearchOpen(false)}
                           className="flex items-center gap-3 p-2 hover:bg-bg-cream rounded-lg transition"
                         >
-                          <img 
-                            src={product.images[0]} 
-                            alt={product.name} 
-                            className="w-10 h-10 object-cover rounded" 
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded"
                           />
                           <div className="flex-1 text-xs">
                             <p className="font-semibold text-dark truncate">{product.name}</p>
@@ -274,24 +274,24 @@ export default function Header() {
 
             {/* Language Selector */}
             <div ref={langRef} className="relative hidden md:block">
-              <button 
+              <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="text-dark hover:text-gold transition p-2 flex items-center gap-1 text-xs font-semibold tracking-wider"
               >
                 <Globe size={16} />
                 <span>{language}</span>
               </button>
-              
+
               {langDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-28 bg-white rounded-lg luxury-shadow luxury-border p-1 z-50">
-                  <button 
+                  <button
                     onClick={() => { setLanguage('FR'); setLangDropdownOpen(false); }}
                     className={`w-full text-left px-3 py-2 text-xs rounded hover:bg-bg-cream transition flex justify-between items-center ${language === 'FR' ? 'text-gold font-bold' : 'text-dark'}`}
                   >
                     <span>Français</span>
                     <span className="text-[10px] opacity-40">FR</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => { setLanguage('EN'); setLangDropdownOpen(false); }}
                     className={`w-full text-left px-3 py-2 text-xs rounded hover:bg-bg-cream transition flex justify-between items-center ${language === 'EN' ? 'text-gold font-bold' : 'text-dark'}`}
                   >
@@ -304,13 +304,13 @@ export default function Header() {
 
             {/* Currency Selector */}
             <div ref={currRef} className="relative">
-              <button 
+              <button
                 onClick={() => setCurrDropdownOpen(!currDropdownOpen)}
                 className="text-dark hover:text-gold transition p-2 flex items-center gap-1 text-xs font-semibold tracking-wider"
               >
                 <span>{currency}</span>
               </button>
-              
+
               {currDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg luxury-shadow luxury-border p-1 z-50">
                   {['XOF', 'XAF', 'USD', 'EUR'].map((curr) => (
@@ -328,8 +328,8 @@ export default function Header() {
             </div>
 
             {/* Account Icon */}
-            <Link 
-              href={user ? "/dashboard" : "/dashboard?auth=login"} 
+            <Link
+              href={user ? "/dashboard" : "/dashboard?auth=login"}
               className="text-dark hover:text-gold transition p-2 flex items-center gap-1"
               aria-label="Compte Client"
             >
@@ -342,7 +342,7 @@ export default function Header() {
             </Link>
 
             {/* Cart Bag Icon with trigger */}
-            <button 
+            <button
               onClick={() => setCartDrawerOpen(true)}
               className="text-dark hover:text-gold transition p-2 relative"
               aria-label="Panier"
@@ -363,21 +363,21 @@ export default function Header() {
       {cartDrawerOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           {/* Overlay */}
-          <div 
+          <div
             className="absolute inset-0 bg-dark/40 backdrop-blur-sm transition-opacity"
             onClick={() => setCartDrawerOpen(false)}
           />
 
           <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-white luxury-shadow flex flex-col h-full fade-in">
-              
+
               {/* Drawer Header */}
               <div className="px-6 py-5 border-b border-gold/10 flex items-center justify-between">
                 <h2 className="text-lg font-serif-display font-bold tracking-wider text-dark flex items-center gap-2">
                   <ShoppingBag size={20} className="text-gold" />
                   {t('cart')} ({totalCartCount})
                 </h2>
-                <button 
+                <button
                   onClick={() => setCartDrawerOpen(false)}
                   className="text-dark hover:text-gold transition p-1"
                 >
@@ -407,9 +407,9 @@ export default function Header() {
                   <div className="space-y-6">
                     {cart.map((item) => (
                       <div key={item.product_id} className="flex gap-4 border-b border-gold/5 pb-6">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
+                        <img
+                          src={item.image}
+                          alt={item.name}
                           className="w-16 h-16 object-cover rounded-lg bg-bg-cream luxury-border flex-shrink-0"
                         />
                         <div className="flex-1 flex flex-col justify-between">
@@ -426,27 +426,27 @@ export default function Header() {
                               </p>
                             )}
                           </div>
-                          
+
                           <div className="flex items-center justify-between text-[11px] mt-2">
                             {/* Quantity Adjuster */}
                             <div className="flex items-center border border-gold/15 rounded-md bg-bg-cream overflow-hidden">
-                              <button 
+                              <button
                                 onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
                                 className="p-1 hover:text-gold transition"
                               >
                                 <Minus size={12} />
                               </button>
                               <span className="px-2 font-bold text-dark">{item.quantity}</span>
-                              <button 
+                              <button
                                 onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                                 className="p-1 hover:text-gold transition"
                               >
                                 <Plus size={12} />
                               </button>
                             </div>
-                            
+
                             {/* Remove button */}
-                            <button 
+                            <button
                               onClick={() => removeFromCart(item.product_id)}
                               className="text-dark-muted hover:text-error transition flex items-center gap-1"
                             >
@@ -543,7 +543,7 @@ export default function Header() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="flex-1 py-6 px-6 space-y-6 text-sm font-semibold uppercase tracking-widest">
               <Link href="/" className="block hover:text-gold transition py-2 border-b border-gold/5">{t('home')}</Link>
               <Link href="/shop" className="block hover:text-gold transition py-2 border-b border-gold/5">{t('shop')}</Link>

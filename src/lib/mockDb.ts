@@ -574,6 +574,20 @@ class MockDB {
     return this.get<DeliveryZone[]>('eb_delivery_zones', seedDeliveryZones);
   }
 
+  getCustomShippingCost(country: string): number {
+    const defaultRates: Record<string, number> = {
+      "Côte d'Ivoire": 3000,
+      "Senegal": 3500,
+      "Benin": 2500,
+      "Togo": 2000,
+      "Cameroon": 4000,
+      "Mali": 3500,
+      "Burkina Faso": 3500
+    };
+    const rates = this.get<Record<string, number>>('eb_country_shipping_rates', defaultRates);
+    return rates[country] || 2500;
+  }
+
   // Testimonials
   getTestimonials(): Testimonial[] {
     return this.get<Testimonial[]>('eb_testimonials', seedTestimonials);
