@@ -785,6 +785,56 @@ class MockDB {
     return this.get<BlogPost[]>('eb_blog_posts', seedBlogPosts);
   }
 
+  createBlogPost(post: Omit<BlogPost, 'id' | 'created_at'>): BlogPost {
+    const posts = this.getBlogPosts();
+    const newPost: BlogPost = {
+      ...post,
+      id: generateUUID(),
+      created_at: new Date().toISOString(),
+    };
+    posts.push(newPost);
+    this.set('eb_blog_posts', posts);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('blog_posts').insert([newPost]).then(({ error }) => {
+        if (error) console.error('Supabase blog post insert error:', error);
+      });
+    }
+
+    return newPost;
+  }
+
+  updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost {
+    const posts = this.getBlogPosts();
+    const idx = posts.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error('Blog post not found');
+    posts[idx] = { ...posts[idx], ...updates };
+    this.set('eb_blog_posts', posts);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('blog_posts').update(updates).eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase blog post update error:', error);
+      });
+    }
+
+    return posts[idx];
+  }
+
+  deleteBlogPost(id: string): boolean {
+    const posts = this.getBlogPosts();
+    const filtered = posts.filter((p) => p.id !== id);
+    if (filtered.length === posts.length) return false;
+    this.set('eb_blog_posts', filtered);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('blog_posts').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase blog post delete error:', error);
+      });
+    }
+
+    return true;
+  }
+
   // Reviews
   getReviews(productId?: string): Review[] {
     const reviews = this.get<Review[]>('eb_reviews', seedReviews);

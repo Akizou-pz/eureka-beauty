@@ -16,7 +16,8 @@ import {
   Menu,
   X,
   ChevronRight,
-  Truck
+  Truck,
+  BookOpen
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -79,6 +80,7 @@ export default function AdminLayout({
     { href: '/admin/orders', label: 'Commandes & Factures', icon: ClipboardList },
     { href: '/admin/marketing', label: 'Coupons & Promos', icon: Percent },
     { href: '/admin/shipping', label: 'Zones & Tarifs', icon: Truck },
+    { href: '/admin/blog', label: 'Conseils & Blog', icon: BookOpen },
   ];
 
   return (
