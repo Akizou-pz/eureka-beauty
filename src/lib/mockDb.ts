@@ -83,7 +83,7 @@ export interface Customer {
   phone: string;
   whatsapp: string;
   loyalty_points: number;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'delivery';
 }
 
 export interface OrderItem {
@@ -1110,6 +1110,109 @@ class MockDB {
       window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
     }
     return settings;
+  }
+
+  getUsers(): Customer[] {
+    const staticUsers: Customer[] = [
+      {
+        id: 'cust-admin-001',
+        first_name: 'Directrice',
+        last_name: 'Eureka',
+        email: 'admin@eurekabeauty.com',
+        phone: '+228 93866752',
+        whatsapp: '+228 93866752',
+        loyalty_points: 9999,
+        role: 'admin'
+      },
+      {
+        id: 'cust-customer-001',
+        first_name: 'Fatou',
+        last_name: 'Diallo',
+        email: 'customer@eurekabeauty.com',
+        phone: '+221 77 123 45 67',
+        whatsapp: '+221 77 123 45 67',
+        loyalty_points: 150,
+        role: 'customer'
+      }
+    ];
+    
+    if (typeof window !== 'undefined') {
+      const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+      const registeredList = Object.keys(registered).map(email => ({
+        id: registered[email].id,
+        first_name: registered[email].first_name,
+        last_name: registered[email].last_name,
+        email: email,
+        phone: registered[email].phone || '',
+        whatsapp: registered[email].whatsapp || '',
+        loyalty_points: registered[email].loyalty_points || 0,
+        role: registered[email].role || 'customer'
+      }));
+      return [...staticUsers, ...registeredList];
+    }
+    return staticUsers;
+  }
+
+  updateUserRole(userId: string, role: 'customer' | 'admin' | 'delivery') {
+    if (typeof window !== 'undefined') {
+      const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+      const email = Object.keys(registered).find(k => registered[k].id === userId);
+      if (email) {
+        registered[email].role = role;
+        localStorage.setItem('eb_users_db', JSON.stringify(registered));
+      } else {
+        const staticUsers = [
+          {
+            id: 'cust-admin-001',
+            first_name: 'Directrice',
+            last_name: 'Eureka',
+            email: 'admin@eurekabeauty.com',
+            phone: '+228 93866752',
+            whatsapp: '+228 93866752',
+            loyalty_points: 9999,
+            role: 'admin'
+          },
+          {
+            id: 'cust-customer-001',
+            first_name: 'Fatou',
+            last_name: 'Diallo',
+            email: 'customer@eurekabeauty.com',
+            phone: '+221 77 123 45 67',
+            whatsapp: '+221 77 123 45 67',
+            loyalty_points: 150,
+            role: 'customer'
+          }
+        ];
+        const staticUser = staticUsers.find(u => u.id === userId);
+        if (staticUser) {
+          registered[staticUser.email] = {
+            ...staticUser,
+            role,
+            password: staticUser.role === 'admin' ? 'admin123' : 'customer123'
+          };
+          localStorage.setItem('eb_users_db', JSON.stringify(registered));
+        }
+      }
+
+      const sessionStr = localStorage.getItem('eb_session');
+      if (sessionStr) {
+        const sessionUser = JSON.parse(sessionStr);
+        if (sessionUser.id === userId) {
+          sessionUser.role = role;
+          localStorage.setItem('eb_session', JSON.stringify(sessionUser));
+        }
+      }
+    }
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('customers').update({ role }).eq('id', userId).then(({ error }) => {
+        if (error) console.error('Supabase customer role update error:', error);
+      });
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+    }
   }
 }
 

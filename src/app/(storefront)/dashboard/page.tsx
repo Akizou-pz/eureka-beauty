@@ -45,11 +45,14 @@ function CustomerDashboard() {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Active dashboard tab state
-  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'settings' | 'delivery-orders'>('orders');
 
-  // Customer states
+  // Customer/Delivery states
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [deliverySearch, setDeliverySearch] = useState('');
+  const [deliveryFilter, setDeliveryFilter] = useState<'active' | 'all'>('active');
 
   // Profile Form states
   const [profileFirst, setProfileFirst] = useState('');
@@ -66,6 +69,13 @@ function CustomerDashboard() {
       setProfilePhone(user.phone || '');
       setProfileWhatsapp(user.whatsapp || '');
 
+      if (user.role === 'delivery') {
+        setActiveTab('delivery-orders');
+        setAllOrders(db.getOrders());
+      } else {
+        setActiveTab('orders');
+      }
+
       // Load orders
       const orders = db.getOrders().filter(o => o.customer_id === user.id);
       setMyOrders(orders);
@@ -77,6 +87,38 @@ function CustomerDashboard() {
       setWishlistItems(wishlistProds);
     }
   }, [user]);
+
+  const loadDeliveryOrders = () => {
+    if (user && user.role === 'delivery') {
+      setAllOrders(db.getOrders());
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('supabase_sync_complete', loadDeliveryOrders);
+    return () => window.removeEventListener('supabase_sync_complete', loadDeliveryOrders);
+  }, [user]);
+
+  const handleDeliveryStatusChange = (orderId: string, status: Order['order_status']) => {
+    const payStatus = status === 'Delivered' ? 'Paid' : undefined;
+    db.updateOrderStatus(orderId, status, payStatus);
+    setAllOrders(db.getOrders());
+  };
+
+  const displayDeliveryOrders = allOrders.filter((ord) => {
+    const q = deliverySearch.toLowerCase();
+    const matchSearch =
+      ord.order_number.toLowerCase().includes(q) ||
+      (ord.first_name + ' ' + ord.last_name).toLowerCase().includes(q) ||
+      ord.phone.includes(q);
+
+    if (!matchSearch) return false;
+
+    if (deliveryFilter === 'active') {
+      return ord.order_status !== 'Delivered' && ord.order_status !== 'Cancelled';
+    }
+    return true;
+  });
 
   const [socialLoading, setSocialLoading] = useState(false);
 
@@ -361,25 +403,38 @@ function CustomerDashboard() {
             </div>
             <div className="text-xs truncate">
               <p className="font-bold text-dark text-sm truncate">{user.first_name} {user.last_name}</p>
-              <p className="text-gold mt-0.5 uppercase tracking-wider font-semibold">{user.role === 'admin' ? 'Administrateur' : 'Client Privé'}</p>
+              <p className="text-gold mt-0.5 uppercase tracking-wider font-semibold">
+                {user.role === 'admin' ? 'Administrateur' : user.role === 'delivery' ? 'Livreur Partenaire' : 'Client Privé'}
+              </p>
             </div>
           </div>
 
           {/* Navigation Menu */}
           <nav className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-widest">
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`w-full text-left py-2.5 px-3 rounded-lg transition flex items-center gap-2 ${activeTab === 'orders' ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
-            >
-              <ShoppingBag size={14} /> Mes Commandes ({myOrders.length})
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('wishlist')}
-              className={`w-full text-left py-2.5 px-3 rounded-lg transition flex items-center gap-2 ${activeTab === 'wishlist' ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
-            >
-              <Heart size={14} /> Liste d'envies ({wishlistItems.length})
-            </button>
+            {user.role === 'delivery' ? (
+              <button
+                onClick={() => setActiveTab('delivery-orders')}
+                className={`w-full text-left py-2.5 px-3 rounded-lg transition flex items-center gap-2 ${activeTab === 'delivery-orders' ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
+              >
+                <Truck size={14} /> Livraisons Actives
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className={`w-full text-left py-2.5 px-3 rounded-lg transition flex items-center gap-2 ${activeTab === 'orders' ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
+                >
+                  <ShoppingBag size={14} /> Mes Commandes ({myOrders.length})
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('wishlist')}
+                  className={`w-full text-left py-2.5 px-3 rounded-lg transition flex items-center gap-2 ${activeTab === 'wishlist' ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
+                >
+                  <Heart size={14} /> Liste d'envies ({wishlistItems.length})
+                </button>
+              </>
+            )}
 
             <button
               onClick={() => setActiveTab('settings')}
@@ -401,25 +456,41 @@ function CustomerDashboard() {
         <div className="lg:col-span-9 space-y-6">
           
           {/* Welcome Points banner */}
-          <div className="bg-gradient-to-r from-dark to-[#1a1a1a] text-white rounded-2xl p-6 sm:p-8 luxury-shadow flex flex-col sm:flex-row justify-between items-center gap-6 border border-gold/10">
-            <div className="space-y-2 text-center sm:text-left">
-              <span className="text-[9px] bg-gold/20 border border-gold/40 text-gold font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest inline-flex items-center gap-1.5">
-                <Sparkles size={10} /> Club Privé Eureka
-              </span>
-              <h2 className="font-serif-display text-2xl font-semibold">
-                Ravi de vous revoir, {user.first_name} !
-              </h2>
-              <p className="text-[11px] text-white/60 leading-relaxed font-light">
-                Chaque achat vous rapporte 0.5% en points de fidélité réutilisables lors de vos checkouts.
-              </p>
+          {user.role === 'delivery' ? (
+            <div className="bg-gradient-to-r from-dark to-[#1a1a1a] text-white rounded-2xl p-6 sm:p-8 luxury-shadow flex flex-col sm:flex-row justify-between items-center gap-6 border border-gold/10 animate-in fade-in duration-300">
+              <div className="space-y-2 text-center sm:text-left">
+                <span className="text-[9px] bg-gold/20 border border-gold/40 text-gold font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest inline-flex items-center gap-1.5">
+                  <Truck size={10} /> Espace Livreur Eureka
+                </span>
+                <h2 className="font-serif-display text-2xl font-semibold">
+                  Ravi de vous revoir, {user.first_name} !
+                </h2>
+                <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                  Consultez la liste des commandes clients ci-dessous pour mettre à jour les étapes d'expédition en temps réel.
+                </p>
+              </div>
             </div>
-            
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 min-w-[140px] text-center flex-shrink-0">
-              <span className="text-[9px] uppercase tracking-widest text-white/40 block">Points Accumulés</span>
-              <span className="font-serif-display text-3xl font-bold text-gold mt-1 block">{user.loyalty_points}</span>
-              <span className="text-[9px] text-gold/75 mt-1 block">Valeur: {formatPrice(user.loyalty_points * 10)}</span>
+          ) : (
+            <div className="bg-gradient-to-r from-dark to-[#1a1a1a] text-white rounded-2xl p-6 sm:p-8 luxury-shadow flex flex-col sm:flex-row justify-between items-center gap-6 border border-gold/10">
+              <div className="space-y-2 text-center sm:text-left">
+                <span className="text-[9px] bg-gold/20 border border-gold/40 text-gold font-semibold px-2.5 py-1 rounded-full uppercase tracking-widest inline-flex items-center gap-1.5">
+                  <Sparkles size={10} /> Club Privé Eureka
+                </span>
+                <h2 className="font-serif-display text-2xl font-semibold">
+                  Ravi de vous revoir, {user.first_name} !
+                </h2>
+                <p className="text-[11px] text-white/60 leading-relaxed font-light">
+                  Chaque achat vous rapporte 0.5% en points de fidélité réutilisables lors de vos checkouts.
+                </p>
+              </div>
+              
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 min-w-[140px] text-center flex-shrink-0">
+                <span className="text-[9px] uppercase tracking-widest text-white/40 block">Points Accumulés</span>
+                <span className="font-serif-display text-3xl font-bold text-gold mt-1 block">{user.loyalty_points}</span>
+                <span className="text-[9px] text-gold/75 mt-1 block">Valeur: {formatPrice(user.loyalty_points * 10)}</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* TAB CONTENT: ORDERS */}
           {activeTab === 'orders' && (
@@ -598,6 +669,127 @@ function CustomerDashboard() {
                   Enregistrer les modifications
                 </button>
               </form>
+            </div>
+          )}
+
+          {activeTab === 'delivery-orders' && (
+            <div className="bg-white border border-gold/10 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm animate-in fade-in duration-300">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gold/5 pb-4">
+                <h3 className="font-serif-display text-lg font-semibold text-dark uppercase tracking-wider">
+                  Suivi des Livraisons
+                </h3>
+                
+                {/* Search bar inside tab */}
+                <div className="w-full sm:w-64 border border-gold/20 rounded-lg px-3 py-1.5 flex items-center gap-2 bg-bg-cream/20 text-xs">
+                  <input
+                    type="text"
+                    placeholder="Rechercher nom, N° ou tel..."
+                    value={deliverySearch}
+                    onChange={(e) => setDeliverySearch(e.target.value)}
+                    className="w-full bg-transparent outline-none text-dark"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 border-b border-gold/5 pb-2 text-[10px] uppercase font-bold tracking-wider">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryFilter('active')}
+                  className={`px-3 py-1 rounded-full border transition ${deliveryFilter === 'active' ? 'bg-gold text-white border-gold' : 'border-gold/20 text-dark-muted hover:bg-bg-cream'}`}
+                >
+                  Actives
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryFilter('all')}
+                  className={`px-3 py-1 rounded-full border transition ${deliveryFilter === 'all' ? 'bg-gold text-white border-gold' : 'border-gold/20 text-dark-muted hover:bg-bg-cream'}`}
+                >
+                  Toutes
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {displayDeliveryOrders.length === 0 ? (
+                  <p className="text-xs text-dark-muted italic py-6 text-center">Aucune livraison enregistrée.</p>
+                ) : (
+                  displayDeliveryOrders.map((ord) => (
+                    <div key={ord.id} className="border border-gold/10 rounded-xl p-4 sm:p-6 hover:bg-bg-cream/10 transition space-y-4 text-xs">
+                      <div className="flex justify-between items-start border-b border-gold/5 pb-3">
+                        <div>
+                          <span className="font-serif-display font-semibold text-dark text-sm">{ord.order_number}</span>
+                          <p className="text-[10px] text-dark-muted mt-0.5">Placée le {new Date(ord.created_at).toLocaleDateString('fr-FR')}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-serif-display font-bold text-gold text-sm block">{formatPrice(ord.total_xof)}</span>
+                          <span className="text-[8px] uppercase tracking-wider text-dark-muted mt-0.5 block">
+                            Mode: <strong className="text-dark">{ord.payment_method}</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Client & Address Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <p className="font-bold text-dark">{ord.first_name} {ord.last_name}</p>
+                          <div className="flex gap-2">
+                            <a
+                              href={`tel:${ord.phone}`}
+                              className="bg-gold/10 hover:bg-gold/25 text-gold font-bold px-3 py-1.5 rounded-md transition text-[10px] uppercase flex items-center gap-1"
+                            >
+                              Appeler
+                            </a>
+                            {ord.whatsapp && (
+                              <a
+                                href={`https://wa.me/${ord.phone.replace(/\+/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-[#25D366]/10 hover:bg-[#25D366]/25 text-[#20ba5a] font-bold px-3 py-1.5 rounded-md transition text-[10px] uppercase flex items-center gap-1"
+                              >
+                                WhatsApp
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="bg-bg-cream/20 border border-gold/10 rounded-xl p-3 space-y-1 leading-relaxed text-dark-muted font-light">
+                          <p>• <strong>Ville :</strong> {ord.city} ({ord.country})</p>
+                          <p>• <strong>Adresse :</strong> {ord.address_line}</p>
+                          {ord.delivery_instructions && <p>• <strong>Instructions :</strong> "{ord.delivery_instructions}"</p>}
+                        </div>
+                      </div>
+
+                      {/* Status Update */}
+                      <div className="pt-3 border-t border-gold/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[10px] text-dark uppercase tracking-wider">État livraison :</span>
+                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
+                            {ord.order_status}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : 'bg-accent/15 text-accent'}`}>
+                            {ord.payment_status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-bold uppercase text-dark">Mettre à jour :</label>
+                          <select
+                            value={ord.order_status}
+                            onChange={(e) => handleDeliveryStatusChange(ord.id, e.target.value as any)}
+                            className="bg-white border border-gold/20 rounded-lg px-2.5 py-1 text-xs text-dark outline-none focus:border-gold transition"
+                          >
+                            <option value="Confirmed">Confirmée</option>
+                            <option value="Packed">Préparation</option>
+                            <option value="Shipped">Expédiée</option>
+                            <option value="Out for Delivery">En livraison</option>
+                            <option value="Delivered">Livrée (Encaissement)</option>
+                            <option value="Cancelled">Annulée</option>
+                          </select>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 

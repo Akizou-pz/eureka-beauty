@@ -191,11 +191,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               phone: registeredUsers[lowerEmail].phone,
               whatsapp: registeredUsers[lowerEmail].whatsapp,
               loyalty_points: registeredUsers[lowerEmail].loyalty_points || 0,
-              role: 'customer',
+              role: registeredUsers[lowerEmail].role || 'customer',
             };
             setUser(matchedUser);
             localStorage.setItem('eb_session', JSON.stringify(matchedUser));
-            resolve({ success: true, isAdmin: false });
+            resolve({ success: true, isAdmin: matchedUser.role === 'admin' });
           } else {
             resolve({ success: false, error: 'Identifiants incorrects (Mot de passe incorrect ou email non inscrit)' });
           }
