@@ -1,7 +1,5 @@
--- EUREKA BEAUTY - SUPABASE DATABASE SCHEMA
--- Production-Ready Database Schema with RLS and Seeds
-
--- Drop existing tables to avoid duplicate errors (reverse dependency order)
+-- Drop existing tables and triggers to avoid duplicate errors (reverse dependency order)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS stock_movements CASCADE;
 DROP TABLE IF EXISTS order_items CASCADE;
@@ -106,11 +104,32 @@ CREATE TABLE customers (
     email VARCHAR(150) UNIQUE NOT NULL,
     phone VARCHAR(50),
     whatsapp VARCHAR(50),
-    loyalty_points INT DEFAULT 0,
-    referred_by UUID REFERENCES customers(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    loyalty_points INT DEFAULT 0
 );
+
+-- Create trigger function to automatically copy new auth users to customers (supports Google, Facebook & Email metadata)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.customers (id, first_name, last_name, email, phone, loyalty_points, role)
+  VALUES (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'first_name', split_part(new.raw_user_meta_data->>'full_name', ' ', 1), 'Client'),
+    coalesce(new.raw_user_meta_data->>'last_name', split_part(new.raw_user_meta_data->>'full_name', ' ', 2), 'Eureka'),
+    new.email,
+    coalesce(new.phone, ''),
+    50, -- 50 loyalty points signup bonus
+    'customer'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger the function on every auth.users insert
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 7. ADDRESSES TABLE
 CREATE TABLE addresses (
