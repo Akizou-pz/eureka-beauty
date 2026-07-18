@@ -26,6 +26,8 @@ export interface Brand {
   name: string;
   slug: string;
   description: string;
+  logo_url?: string;
+  created_at?: string;
 }
 
 export interface Product {
@@ -595,6 +597,25 @@ class MockDB {
   // Brands
   getBrands(): Brand[] {
     return this.get<Brand[]>('eb_brands', seedBrands);
+  }
+
+  createBrand(brand: Omit<Brand, 'id' | 'created_at'>): Brand {
+    const brands = this.getBrands();
+    const newBrand: Brand = {
+      ...brand,
+      id: generateUUID(),
+      created_at: new Date().toISOString(),
+    };
+    brands.push(newBrand);
+    this.set('eb_brands', brands);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('brands').insert([newBrand]).then(({ error }) => {
+        if (error) console.error('Supabase brand insert error:', error);
+      });
+    }
+
+    return newBrand;
   }
 
   // Products
