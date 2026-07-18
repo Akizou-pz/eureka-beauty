@@ -1,6 +1,23 @@
 -- EUREKA BEAUTY - SUPABASE DATABASE SCHEMA
 -- Production-Ready Database Schema with RLS and Seeds
 
+-- Drop existing tables to avoid duplicate errors (reverse dependency order)
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS wishlists CASCADE;
+DROP TABLE IF EXISTS addresses CASCADE;
+DROP TABLE IF EXISTS customers CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS brands CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS coupons CASCADE;
+DROP TABLE IF EXISTS delivery_zones CASCADE;
+DROP TABLE IF EXISTS blog_posts CASCADE;
+DROP TABLE IF EXISTS newsletter_subscribers CASCADE;
+DROP TABLE IF EXISTS testimonials CASCADE;
+DROP TABLE IF EXISTS shipping_countries CASCADE;
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
