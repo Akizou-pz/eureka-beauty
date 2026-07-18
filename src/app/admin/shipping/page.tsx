@@ -183,8 +183,8 @@ export default function AdminShippingPage() {
 
       {/* Modal Add/Edit */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-6 animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="my-4 sm:my-auto bg-[#121212] border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-6 animate-scale-up">
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <h3 className="font-serif-display text-lg font-semibold text-gold">
                 {editingId ? 'Modifier le Pays' : 'Ajouter un Pays de Livraison'}
