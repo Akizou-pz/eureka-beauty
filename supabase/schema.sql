@@ -65,6 +65,7 @@ CREATE TABLE products (
     is_featured BOOLEAN DEFAULT FALSE,
     is_flash_sale BOOLEAN DEFAULT FALSE,
     images TEXT[] NOT NULL, -- Array of image URLs
+    video_url TEXT, -- URL of product video (YouTube/MP4)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -16,7 +16,8 @@ import {
   Truck, 
   RotateCcw,
   Sparkles,
-  MessageCircle
+  MessageCircle,
+  Play
 } from 'lucide-react';
 
 export default function ProductDetailClient() {
@@ -31,6 +32,7 @@ export default function ProductDetailClient() {
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeImage, setActiveImage] = useState('');
+  const [isVideoActive, setIsVideoActive] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'details' | 'ingredients' | 'how-to' | 'reviews' | 'delivery'>('details');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -68,7 +70,8 @@ export default function ProductDetailClient() {
 
     const sanitized = sanitizeProductData(foundProduct);
     setProduct(sanitized);
-    setActiveImage((prev) => prev || sanitized.images[0] || '');
+    setActiveImage(sanitized.images[0] || '');
+    setIsVideoActive(false);
     
     // Fetch product reviews
     const prodReviews = db.getReviews(foundProduct.id);
@@ -87,6 +90,7 @@ export default function ProductDetailClient() {
 
   useEffect(() => {
     loadProductDetail();
+    setIsVideoActive(false);
     // Reset counts
     setQuantity(1);
     setReviewSubmitted(false);
@@ -169,25 +173,77 @@ export default function ProductDetailClient() {
                 -{product.discount_percent}% OFF
               </span>
             )}
-            <img
-              src={activeImage}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            {isVideoActive && product.video_url ? (
+              (() => {
+                const url = product.video_url;
+                const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+                if (isYouTube) {
+                  let videoId = '';
+                  if (url.includes('youtube.com/watch?v=')) {
+                    videoId = url.split('v=')[1]?.split('&')[0] || '';
+                  } else if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1]?.split('?')[0] || '';
+                  } else if (url.includes('youtube.com/embed/')) {
+                    videoId = url.split('embed/')[1]?.split('?')[0] || '';
+                  }
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                      title={product?.name}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  );
+                }
+
+                return (
+                  <video
+                    src={url}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover bg-black"
+                  />
+                );
+              })()
+            ) : (
+              <img
+                src={activeImage}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
           
           {/* Thumbnails */}
-          {product.images.length > 1 && (
+          {(product.images.length > 1 || product.video_url) && (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
               {product.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setActiveImage(imgUrl)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
+                  onClick={() => {
+                    setActiveImage(imgUrl);
+                    setIsVideoActive(false);
+                  }}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
                 >
                   <img src={imgUrl} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
                 </button>
               ))}
+
+              {product.video_url && (
+                <button
+                  onClick={() => setIsVideoActive(true)}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
+                    <Play size={16} fill="currentColor" />
+                  </div>
+                  <span className="text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">Vidéo</span>
+                </button>
+              )}
             </div>
           )}
         </div>

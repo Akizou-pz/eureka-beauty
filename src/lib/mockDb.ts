@@ -50,6 +50,7 @@ export interface Product {
   is_featured: boolean;
   is_flash_sale: boolean;
   images: string[];
+  video_url?: string;
   created_at: string;
 }
 

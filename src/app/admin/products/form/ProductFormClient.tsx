@@ -31,7 +31,11 @@ export default function ProductFormClient() {
   const [sku, setSku] = useState('');
   const [skinType, setSkinType] = useState('All');
   const [skinConcern, setSkinConcern] = useState('General');
-  const [imageUrl, setImageUrl] = useState('');
+  const [mainImage, setMainImage] = useState('');
+  const [secondaryImage1, setSecondaryImage1] = useState('');
+  const [secondaryImage2, setSecondaryImage2] = useState('');
+  const [secondaryImage3, setSecondaryImage3] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
 
   // Status feedback
   const [feedback, setFeedback] = useState({ text: '', type: '' });
@@ -60,7 +64,11 @@ export default function ProductFormClient() {
         setSku(prod.sku);
         setSkinType(prod.skin_type);
         setSkinConcern(prod.skin_concern);
-        setImageUrl(prod.images[0] || '');
+        setMainImage(prod.images[0] || '');
+        setSecondaryImage1(prod.images[1] || '');
+        setSecondaryImage2(prod.images[2] || '');
+        setSecondaryImage3(prod.images[3] || '');
+        setVideoUrl(prod.video_url || '');
       } else {
         setFeedback({ text: 'Produit introuvable', type: 'error' });
       }
@@ -69,7 +77,7 @@ export default function ProductFormClient() {
       setCategoryId(cats[0]?.id || '');
       setBrandId(brs[0]?.id || '');
       setSku(`EB-SK-${Math.floor(100 + Math.random() * 900)}`);
-      setImageUrl('https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600');
+      setMainImage('https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600');
     }
   }, [productId, isEditMode]);
 
@@ -87,6 +95,10 @@ export default function ProductFormClient() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const imagesArray = [mainImage, secondaryImage1, secondaryImage2, secondaryImage3]
+      .map(url => url.trim())
+      .filter(url => url !== '');
 
     const productPayload = {
       category_id: categoryId,
@@ -106,7 +118,8 @@ export default function ProductFormClient() {
       skin_concern: skinConcern,
       is_featured: true,
       is_flash_sale: false,
-      images: [imageUrl],
+      images: imagesArray.length > 0 ? imagesArray : ['https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500'],
+      video_url: videoUrl.trim() || undefined,
     };
 
     try {
@@ -310,17 +323,65 @@ export default function ProductFormClient() {
           </div>
         </div>
 
-        {/* Row 5: Product Image URL */}
-        <div className="space-y-1.5">
-          <label className="block text-[10px] uppercase tracking-widest text-gold font-bold">URL de l'image descriptive</label>
-          <input
-            type="text"
-            required
-            placeholder="Ex: https://images.unsplash.com/..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
-          />
+        {/* Row 5: Product Media (Images and Video) */}
+        <div className="space-y-4 border border-white/5 p-4 rounded-xl bg-white/[0.02]">
+          <h3 className="text-xs uppercase tracking-widest text-gold font-bold border-b border-white/5 pb-2">Médias du Produit</h3>
+          
+          <div className="space-y-1.5">
+            <label className="block text-[10px] uppercase tracking-widest text-white/80 font-semibold">Image Principale (Obligatoire)</label>
+            <input
+              type="text"
+              required
+              placeholder="Ex: https://images.unsplash.com/... (Image mise en avant)"
+              value={mainImage}
+              onChange={(e) => setMainImage(e.target.value)}
+              className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] uppercase tracking-widest text-white/50 font-semibold">Image Secondaire 1</label>
+              <input
+                type="text"
+                placeholder="URL de l'image"
+                value={secondaryImage1}
+                onChange={(e) => setSecondaryImage1(e.target.value)}
+                className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[10px] uppercase tracking-widest text-white/50 font-semibold">Image Secondaire 2</label>
+              <input
+                type="text"
+                placeholder="URL de l'image"
+                value={secondaryImage2}
+                onChange={(e) => setSecondaryImage2(e.target.value)}
+                className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-[10px] uppercase tracking-widest text-white/50 font-semibold">Image Secondaire 3</label>
+              <input
+                type="text"
+                placeholder="URL de l'image"
+                value={secondaryImage3}
+                onChange={(e) => setSecondaryImage3(e.target.value)}
+                className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 pt-2">
+            <label className="block text-[10px] uppercase tracking-widest text-white/80 font-semibold">URL de la Vidéo Démo (Optionnelle)</label>
+            <input
+              type="text"
+              placeholder="Ex: https://www.youtube.com/watch?v=... ou lien MP4 direct"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white outline-none focus:border-gold/50 transition"
+            />
+          </div>
         </div>
 
         {/* Row 6: Description */}
