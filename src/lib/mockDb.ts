@@ -555,36 +555,61 @@ class MockDB {
     }
     try {
       console.log('⚡ Database Engine: Connecting and syncing with live Supabase database...');
-      const { data: categories } = await supabase.from('categories').select('*');
-      if (categories && categories.length > 0) this.set('eb_categories', categories);
+      
+      const loadAllData = async () => {
+        const { data: categories } = await supabase.from('categories').select('*');
+        if (categories && categories.length > 0) this.set('eb_categories', categories);
 
-      const { data: brands } = await supabase.from('brands').select('*');
-      if (brands && brands.length > 0) this.set('eb_brands', brands);
+        const { data: brands } = await supabase.from('brands').select('*');
+        if (brands && brands.length > 0) this.set('eb_brands', brands);
 
-      const { data: products } = await supabase.from('products').select('*');
-      if (products && products.length > 0) this.set('eb_products', products);
+        const { data: products } = await supabase.from('products').select('*');
+        if (products && products.length > 0) this.set('eb_products', products);
 
-      const { data: coupons } = await supabase.from('coupons').select('*');
-      if (coupons && coupons.length > 0) this.set('eb_coupons', coupons);
+        const { data: coupons } = await supabase.from('coupons').select('*');
+        if (coupons && coupons.length > 0) this.set('eb_coupons', coupons);
 
-      const { data: testimonials } = await supabase.from('testimonials').select('*');
-      if (testimonials && testimonials.length > 0) this.set('eb_testimonials', testimonials);
+        const { data: testimonials } = await supabase.from('testimonials').select('*');
+        if (testimonials && testimonials.length > 0) this.set('eb_testimonials', testimonials);
 
-      const { data: blogPosts } = await supabase.from('blog_posts').select('*');
-      if (blogPosts && blogPosts.length > 0) this.set('eb_blog_posts', blogPosts);
+        const { data: blogPosts } = await supabase.from('blog_posts').select('*');
+        if (blogPosts && blogPosts.length > 0) this.set('eb_blog_posts', blogPosts);
 
-      const { data: shippingCountries } = await supabase.from('shipping_countries').select('*');
-      if (shippingCountries && shippingCountries.length > 0) this.set('eb_shipping_countries', shippingCountries);
+        const { data: shippingCountries } = await supabase.from('shipping_countries').select('*');
+        if (shippingCountries && shippingCountries.length > 0) this.set('eb_shipping_countries', shippingCountries);
 
-      const { data: reviews } = await supabase.from('reviews').select('*');
-      if (reviews && reviews.length > 0) this.set('eb_reviews', reviews);
+        const { data: reviews } = await supabase.from('reviews').select('*');
+        if (reviews && reviews.length > 0) this.set('eb_reviews', reviews);
 
-      const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
-      if (orders && orders.length > 0) this.set('eb_orders', orders);
+        const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
+        if (orders) this.set('eb_orders', orders);
 
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('supabase_sync_complete'));
-      }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+        }
+      };
+
+      await loadAllData();
+
+      // Subscribe to real-time changes on orders
+      supabase
+        .channel('public:orders')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          async (payload) => {
+            console.log('🔔 Realtime Update received for orders:', payload);
+            const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
+            if (orders) {
+              this.set('eb_orders', orders);
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+              }
+            }
+          }
+        )
+        .subscribe();
+
     } catch (err) {
       console.error('Supabase background read sync error:', err);
     }
@@ -911,7 +936,7 @@ class MockDB {
       id: generateUUID(),
       order_number: orderNumber,
       order_status: 'Confirmed',
-      payment_status: orderData.payment_method === 'COD' ? 'Pending' : 'Paid',
+      payment_status: (orderData.payment_method === 'COD' || orderData.payment_method === 'WhatsApp') ? 'Pending' : 'Paid',
       estimated_delivery: estDate.toISOString().split('T')[0],
       created_at: new Date().toISOString(),
     };
@@ -959,14 +984,21 @@ class MockDB {
     if (idx === -1) throw new Error('Order not found');
     
     orders[idx].order_status = status;
-    if (paymentStatus) {
-      orders[idx].payment_status = paymentStatus;
-    }
     
-    if (status === 'Cancelled') {
-      orders[idx].payment_status = 'Cancelled';
-      if (cancelReason) {
-        orders[idx].cancel_reason = cancelReason;
+    if (paymentStatus !== undefined) {
+      orders[idx].payment_status = paymentStatus;
+    } else {
+      if (status === 'Delivered') {
+        orders[idx].payment_status = 'Paid';
+      } else if (status === 'Cancelled') {
+        orders[idx].payment_status = 'Cancelled';
+        if (cancelReason) {
+          orders[idx].cancel_reason = cancelReason;
+        }
+      } else {
+        if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
+          orders[idx].payment_status = 'Pending';
+        }
       }
     }
     
@@ -975,10 +1007,19 @@ class MockDB {
 
     if (HAS_SUPABASE_CREDS) {
       const updates: any = { order_status: status };
-      if (paymentStatus) updates.payment_status = paymentStatus;
-      if (status === 'Cancelled') {
-        updates.payment_status = 'Cancelled';
-        if (cancelReason) updates.cancel_reason = cancelReason;
+      if (paymentStatus !== undefined) {
+        updates.payment_status = paymentStatus;
+      } else {
+        if (status === 'Delivered') {
+          updates.payment_status = 'Paid';
+        } else if (status === 'Cancelled') {
+          updates.payment_status = 'Cancelled';
+          if (cancelReason) updates.cancel_reason = cancelReason;
+        } else {
+          if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
+            updates.payment_status = 'Pending';
+          }
+        }
       }
       supabase.from('orders').update(updates).eq('id', id).then(({ error }) => {
         if (error) console.error('Supabase order update status error:', error);
