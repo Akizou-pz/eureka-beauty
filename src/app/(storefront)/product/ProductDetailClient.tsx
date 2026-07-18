@@ -336,7 +336,7 @@ export default function ProductDetailClient() {
 
 
       {/* 2. Frequently Bought Together Upsell */}
-      {bundleProducts.length > 0 && (
+      {bundleProducts.length >= 2 && (
         <section className="bg-bg-cream/40 border border-gold/15 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm">
           <h3 className="font-serif-display font-semibold text-lg text-dark tracking-wider flex items-center gap-2">
             <Sparkles size={18} className="text-gold animate-pulse" />
