@@ -397,6 +397,18 @@ export default function ProductFormClient() {
           />
         </div>
 
+        {/* Row 6.5: Mode d'emploi et Conseils */}
+        <div className="space-y-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-gold font-bold">Mode d'emploi et Conseils d'utilisation</label>
+          <textarea
+            rows={3}
+            placeholder="Comment appliquer le produit ? Fréquence d'utilisation ? Astuces beauté..."
+            value={howToUse}
+            onChange={(e) => setHowToUse(e.target.value)}
+            className="w-full text-xs bg-white/5 rounded-lg px-3.5 py-3 border border-white/10 text-white resize-none outline-none focus:border-gold/50 transition"
+          />
+        </div>
+
         {/* Row 7: Ingredients and Benefits */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1.5">
