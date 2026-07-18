@@ -171,6 +171,7 @@ CREATE TABLE orders (
     payment_method VARCHAR(50) NOT NULL, -- COD, Flutterwave, Paystack, Stripe, Mobile Money
     payment_status VARCHAR(50) DEFAULT 'Pending', -- Pending, Paid, Failed, Refunded
     order_status VARCHAR(50) DEFAULT 'Confirmed', -- Confirmed, Packed, Shipped, Out for Delivery, Delivered, Cancelled
+    cancel_reason TEXT,
     estimated_delivery DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
