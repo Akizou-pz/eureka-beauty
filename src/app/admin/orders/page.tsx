@@ -197,7 +197,7 @@ export default function AdminOrdersPage() {
                   >
                     <option value="Pending" className="bg-[#141414] text-white">En attente (Pending)</option>
                     <option value="Paid" className="bg-[#141414] text-white">Payé (Paid)</option>
-                    <option value="Failed" className="bg-[#141414] text-white">Échec (Failed)</option>
+                    <option value="Cancelled" className="bg-[#141414] text-white">Annulé (Cancelled)</option>
                     <option value="Refunded" className="bg-[#141414] text-white">Remboursé (Refunded)</option>
                   </select>
                 </div>

@@ -115,7 +115,7 @@ export interface Order {
   total_xof: number;
   currency: string;
   payment_method: string;
-  payment_status: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
+  payment_status: 'Pending' | 'Paid' | 'Cancelled' | 'Refunded';
   order_status: 'Confirmed' | 'Packed' | 'Shipped' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
   estimated_delivery: string;
   created_at: string;
