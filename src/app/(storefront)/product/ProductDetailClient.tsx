@@ -25,7 +25,7 @@ export default function ProductDetailClient() {
   const slug = searchParams.get('slug') || '';
 
   const { formatPrice, t } = useLangCurr();
-  const { addToCart } = useCart();
+  const { addToCart, clearCart } = useCart();
 
   // Component states
   const [product, setProduct] = useState<Product | null>(null);
@@ -308,15 +308,17 @@ export default function ProductDetailClient() {
           )}
 
           {/* WhatsApp Direct Order button */}
-          <a
-            href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20je%20souhaite%20commander%20le%20produit%20"${product.name}"%20(SKU%3A%20${product.sku})`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => {
+              clearCart();
+              addToCart(product, quantity);
+              router.push('/checkout?from=whatsapp');
+            }}
             className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4"
           >
             <MessageCircle size={16} />
             <span>Acheter par WhatsApp (Livraison Gratuite)</span>
-          </a>
+          </button>
 
           {/* Quick trust flags */}
           <div className="grid grid-cols-3 gap-2 pt-6 text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">

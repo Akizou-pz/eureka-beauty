@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
@@ -19,8 +19,9 @@ import {
   Ticket
 } from 'lucide-react';
 
-export default function CheckoutPage() {
+function CheckoutForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { formatPrice, t } = useLangCurr();
   const {
     cart,
@@ -48,7 +49,43 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('Lomé');
   const [addressLine, setAddressLine] = useState('');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'MobileMoney' | 'Card'>('COD');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'MobileMoney' | 'Card' | 'WhatsApp'>('COD');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fromWhatsApp = searchParams.get('from') === 'whatsapp';
+      if (fromWhatsApp) {
+        setPaymentMethod('WhatsApp');
+      }
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (placedOrder && placedOrder.payment_method === 'WhatsApp') {
+      const productsList = placedOrder.items
+        .map((item) => `* ${item.product_name} x${item.quantity} — ${formatPrice(item.unit_price_xof * item.quantity)}`)
+        .join('\n');
+
+      const rawMessage = `Nouvelle commande ✨ Eureka Beauty Africa
+👤 Client : ${placedOrder.first_name.toUpperCase()} ${placedOrder.last_name.toUpperCase()}
+📱 Téléphone : ${placedOrder.phone}
+📍 Adresse : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
+🚚 Livraison : ${placedOrder.country} — ${placedOrder.city} (${placedOrder.shipping_cost_xof === 0 ? 'gratuite' : formatPrice(placedOrder.shipping_cost_xof)})
+Produits :
+${productsList}
+Sous-total : ${formatPrice(placedOrder.subtotal_xof)}
+${placedOrder.discount_xof > 0 ? `Réduction : -${formatPrice(placedOrder.discount_xof)}\n` : ''}Livraison : ${placedOrder.shipping_cost_xof === 0 ? 'Gratuite' : formatPrice(placedOrder.shipping_cost_xof)}
+Total : ${formatPrice(placedOrder.total_xof)}`;
+
+      const whatsappMessage = encodeURIComponent(rawMessage);
+      const url = `https://wa.me/22893866752?text=${whatsappMessage}`;
+      
+      // Auto redirect to WhatsApp
+      if (typeof window !== 'undefined') {
+        window.open(url, '_blank');
+      }
+    }
+  }, [placedOrder]);
 
   // Loyalty rewards state
   const [useLoyalty, setUseLoyalty] = useState(false);
@@ -246,7 +283,13 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
             </div>
             <div>
               <p className="text-dark-muted">Méthode de Paiement :</p>
-              <p className="font-semibold text-gold mt-0.5 uppercase">{placedOrder.payment_method === 'COD' ? 'Espèces à la Livraison (COD)' : placedOrder.payment_method}</p>
+              <p className="font-semibold text-gold mt-0.5 uppercase">
+                {placedOrder.payment_method === 'COD' 
+                  ? 'Espèces à la Livraison (COD)' 
+                  : placedOrder.payment_method === 'WhatsApp' 
+                  ? 'Validation & Achat par WhatsApp' 
+                  : placedOrder.payment_method}
+              </p>
             </div>
             <div>
               <p className="text-dark-muted">Total Payé :</p>
@@ -551,6 +594,23 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                   <p className="text-dark-muted font-light mt-1">Paiement sécurisé via Stripe. Convient pour les paiements locaux et internationaux.</p>
                 </div>
               </label>
+              {/* WhatsApp confirmation option */}
+              <label className="flex items-start gap-4 p-4 rounded-xl border border-gold/10 cursor-pointer bg-white hover:bg-bg-cream/20 transition">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'WhatsApp'}
+                  onChange={() => setPaymentMethod('WhatsApp')}
+                  className="mt-1 accent-gold"
+                />
+                <div className="text-xs">
+                  <span className="font-bold text-dark flex items-center gap-2">
+                    <MessageSquare size={16} className="text-[#25D366]" />
+                    Confirmation et Achat par WhatsApp - Recommandé
+                  </span>
+                  <p className="text-dark-muted font-light mt-1">Remplissez vos coordonnées de livraison puis validez et confirmez instantanément vos articles via WhatsApp avec notre conseiller.</p>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -670,5 +730,17 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
 
       </form>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[500px] bg-bg-cream">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold" />
+      </div>
+    }>
+      <CheckoutForm />
+    </Suspense>
   );
 }
