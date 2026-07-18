@@ -56,11 +56,17 @@ export default function HomePage() {
     }
   ];
 
+  const loadProducts = () => {
+    const prods = db.getProducts();
+    setProducts(prods);
+    setBestSellers(prods.filter(p => p.is_featured));
+    setFlashSales(prods.filter(p => p.is_flash_sale));
+  };
+
   // Load products & calculate countdown
   useEffect(() => {
-    setProducts(db.getProducts());
-    setBestSellers(db.getProducts().filter(p => p.is_featured));
-    setFlashSales(db.getProducts().filter(p => p.is_flash_sale));
+    loadProducts();
+    window.addEventListener('supabase_sync_complete', loadProducts);
 
     // Timer calculation (Midnight target)
     const calculateTimeLeft = () => {
@@ -87,6 +93,7 @@ export default function HomePage() {
     return () => {
       clearInterval(interval);
       clearInterval(heroTimer);
+      window.removeEventListener('supabase_sync_complete', loadProducts);
     };
   }, []);
 

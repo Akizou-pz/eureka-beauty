@@ -28,6 +28,8 @@ export default function AdminShippingPage() {
 
   useEffect(() => {
     loadData();
+    window.addEventListener('supabase_sync_complete', loadData);
+    return () => window.removeEventListener('supabase_sync_complete', loadData);
   }, []);
 
   const openAddModal = () => {

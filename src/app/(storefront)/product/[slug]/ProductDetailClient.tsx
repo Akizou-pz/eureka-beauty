@@ -49,7 +49,7 @@ export default function ProductDetailClient({ params }: PageProps) {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  useEffect(() => {
+  const loadProductDetail = () => {
     const foundProduct = db.getProductBySlug(slug);
     if (!foundProduct) {
       router.push('/shop');
@@ -57,7 +57,7 @@ export default function ProductDetailClient({ params }: PageProps) {
     }
 
     setProduct(foundProduct);
-    setActiveImage(foundProduct.images[0] || '');
+    setActiveImage((prev) => prev || foundProduct.images[0] || '');
     
     // Fetch product reviews
     const prodReviews = db.getReviews(foundProduct.id);
@@ -72,10 +72,18 @@ export default function ProductDetailClient({ params }: PageProps) {
     // Seed bundle recommendations (e.g. 2 other items)
     const bundleItems = db.getProducts().filter((p) => p.id !== foundProduct.id);
     setBundleProducts(bundleItems.slice(0, 2));
+  };
 
+  useEffect(() => {
+    loadProductDetail();
     // Reset counts
     setQuantity(1);
     setReviewSubmitted(false);
+  }, [slug]);
+
+  useEffect(() => {
+    window.addEventListener('supabase_sync_complete', loadProductDetail);
+    return () => window.removeEventListener('supabase_sync_complete', loadProductDetail);
   }, [slug]);
 
   if (!product) {

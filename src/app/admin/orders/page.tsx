@@ -23,6 +23,8 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     loadOrders();
+    window.addEventListener('supabase_sync_complete', loadOrders);
+    return () => window.removeEventListener('supabase_sync_complete', loadOrders);
   }, []);
 
   const handleStatusChange = (id: string, status: Order['order_status']) => {

@@ -31,15 +31,19 @@ export default function AdminOverviewPage() {
   const [stats, setStats] = useState<AnalyticsData | null>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
-  useEffect(() => {
-    // Refresh stats from mock DB
+  const loadData = () => {
     const data = db.getAnalytics();
     setStats(data);
     
     const orders = db.getOrders();
-    // sort orders by date descending
     const sorted = [...orders].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     setRecentOrders(sorted.slice(0, 5));
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('supabase_sync_complete', loadData);
+    return () => window.removeEventListener('supabase_sync_complete', loadData);
   }, []);
 
   if (!stats) {

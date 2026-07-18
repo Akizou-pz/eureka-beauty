@@ -37,11 +37,17 @@ function Shop() {
   // Mobile sidebar visibility
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Load baseline datasets
-  useEffect(() => {
+  const loadData = () => {
     setProducts(db.getProducts());
     setCategories(db.getCategories());
     setBrands(db.getBrands());
+  };
+
+  // Load baseline datasets
+  useEffect(() => {
+    loadData();
+    window.addEventListener('supabase_sync_complete', loadData);
+    return () => window.removeEventListener('supabase_sync_complete', loadData);
   }, []);
 
   // Synchronize changes in searchParams

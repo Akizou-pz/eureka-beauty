@@ -47,6 +47,8 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     loadData();
+    window.addEventListener('supabase_sync_complete', loadData);
+    return () => window.removeEventListener('supabase_sync_complete', loadData);
   }, []);
 
   // Sync Slug generation when Name changes
