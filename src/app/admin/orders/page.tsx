@@ -40,9 +40,11 @@ export default function AdminOrdersPage() {
 
   const handlePrint = (ord: Order) => {
     setSelectedOrder(ord);
+    setIsPrinting(true);
     setTimeout(() => {
       window.print();
-    }, 100);
+      setIsPrinting(false);
+    }, 150);
   };
 
   // Filter orders by search input
@@ -55,6 +57,120 @@ export default function AdminOrdersPage() {
       o.phone.toLowerCase().includes(q)
     );
   });
+
+  if (isPrinting && selectedOrder) {
+    return (
+      <div className="bg-white text-black p-8 font-sans space-y-8 w-full min-h-screen print:p-0">
+        <style>{`
+          @media print {
+            body {
+              background: white !important;
+              color: black !important;
+            }
+          }
+          @page {
+            size: A4;
+            margin: 1.5cm;
+          }
+        `}</style>
+        
+        {/* Invoice Header */}
+        <div className="flex justify-between items-start border-b border-[#c5a880] pb-6">
+          <div className="space-y-1">
+            <span className="font-serif text-2xl font-bold tracking-wider text-black">
+              EUREKA <span className="text-[#c5a880] font-normal">BEAUTY</span>
+            </span>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[#c5a880] font-semibold">Reveal Your Natural Beauty</p>
+            <p className="text-xs text-gray-500 mt-2">Lomé, Togo</p>
+            <p className="text-xs text-gray-500">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
+          </div>
+          <div className="text-right space-y-1">
+            <h2 className="font-serif text-2xl font-bold tracking-wider uppercase text-black">Facture</h2>
+            <p className="text-xs text-gray-500">Numéro : <span className="font-semibold text-black">{selectedOrder.order_number}</span></p>
+            <p className="text-xs text-gray-500">Date : {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
+            <p className="text-xs text-gray-500">Statut : <span className="font-bold text-[#c5a880]">{selectedOrder.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER (COD)'}</span></p>
+          </div>
+        </div>
+
+        {/* Customer & Shipping Details split */}
+        <div className="grid grid-cols-2 gap-8 text-xs pt-4">
+          <div className="p-4 border border-[#c5a880]/20 rounded-xl bg-gray-50/50 space-y-2">
+            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/10 pb-1.5 text-[10px]">Facturé à :</h4>
+            <div className="space-y-1 text-gray-700">
+              <p className="font-bold text-black text-sm">{selectedOrder.first_name} {selectedOrder.last_name}</p>
+              <p>{selectedOrder.email}</p>
+              <p>{selectedOrder.phone}</p>
+              {selectedOrder.whatsapp && <p>WhatsApp : {selectedOrder.whatsapp}</p>}
+            </div>
+          </div>
+          <div className="p-4 border border-[#c5a880]/20 rounded-xl bg-gray-50/50 space-y-2">
+            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/10 pb-1.5 text-[10px]">Adresse d'expédition :</h4>
+            <div className="space-y-1 text-gray-700">
+              <p className="font-semibold text-black">{selectedOrder.address_line}</p>
+              <p>{selectedOrder.city}, {selectedOrder.country}</p>
+              <p className="pt-1.5 text-[10px] uppercase font-bold text-[#c5a880]">Méthode : <span className="text-black">{selectedOrder.payment_method}</span></p>
+            </div>
+          </div>
+        </div>
+
+        {/* Ordered items Table */}
+        <div className="pt-6">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black/80 text-black font-bold uppercase tracking-wider">
+                <th className="py-3 pr-4">Description de l'article</th>
+                <th className="py-3 px-4">SKU</th>
+                <th className="py-3 px-4 text-center">Quantité</th>
+                <th className="py-3 px-4 text-right">Prix Unitaire</th>
+                <th className="py-3 pl-4 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {selectedOrder.items.map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/20">
+                  <td className="py-4 pr-4 font-semibold text-black">{item.product_name}</td>
+                  <td className="py-4 px-4 uppercase text-gray-500 font-mono">{item.sku}</td>
+                  <td className="py-4 px-4 text-center font-semibold text-black">{item.quantity}</td>
+                  <td className="py-4 px-4 text-right text-gray-700">{formatPrice(item.unit_price_xof)}</td>
+                  <td className="py-4 pl-4 text-right font-bold text-black">{formatPrice(item.total_price_xof)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pricing Totals */}
+        <div className="flex justify-end pt-8">
+          <div className="w-80 text-xs space-y-2.5 border-t border-gray-200 pt-4 text-gray-700">
+            <div className="flex justify-between">
+              <span>Sous-total articles :</span>
+              <span className="font-semibold text-black">{formatPrice(selectedOrder.subtotal_xof)}</span>
+            </div>
+            {selectedOrder.discount_xof > 0 && (
+              <div className="flex justify-between font-bold text-[#c5a880]">
+                <span>Remises appliquées :</span>
+                <span>-{formatPrice(selectedOrder.discount_xof)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Frais d'expédition :</span>
+              <span className="font-semibold text-black">{formatPrice(selectedOrder.shipping_cost_xof)}</span>
+            </div>
+            <div className="flex justify-between border-t border-black pt-3 text-sm font-bold text-black">
+              <span>Montant Net à Payer :</span>
+              <span className="text-[#c5a880] text-base font-bold">{formatPrice(selectedOrder.total_xof)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Terms info */}
+        <div className="text-[10px] text-gray-400 font-light leading-relaxed border-t border-gray-100 pt-16 text-center space-y-1">
+          <p>Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à eurekasupplytg@gmail.com.</p>
+          <p className="mt-2 font-bold text-black uppercase tracking-widest text-[9px]">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 fade-in text-white print:text-dark print:bg-white print:p-0">
