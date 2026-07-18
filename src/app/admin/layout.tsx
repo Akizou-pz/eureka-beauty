@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   UserCheck,
   Menu,
+  X,
   ChevronRight,
   Truck
 } from 'lucide-react';
@@ -27,6 +28,7 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const { formatPrice } = useLangCurr();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (loading) {
     return (
@@ -82,13 +84,43 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#1c1c1c] text-white">
       
+      {/* Mobile Top Header */}
+      <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-[#141414] border-b border-white/5 z-40 sticky top-0">
+        <Link href="/" className="flex flex-col">
+          <span className="font-serif-display text-base font-bold tracking-wider text-white">
+            EUREKA <span className="text-gold font-normal">ADMIN</span>
+          </span>
+          <span className="text-[6px] tracking-[0.2em] uppercase text-gold/80 font-light">
+            Tableau de bord
+          </span>
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="text-white hover:text-gold p-2 bg-white/5 border border-white/5 rounded-lg transition flex items-center justify-center"
+        >
+          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      </div>
+
+      {/* Backdrop overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-45"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Admin Sidebar Navigation */}
-      <aside className="w-full lg:w-64 bg-[#141414] border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col justify-between flex-shrink-0">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-[#141414] border-r border-white/5 flex flex-col justify-between flex-shrink-0 transition-transform duration-300 ease-in-out transform
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:relative lg:translate-x-0 lg:flex lg:h-auto lg:z-auto
+      `}>
         <div className="p-6 space-y-8">
           
           {/* Admin header logo */}
           <div className="flex justify-between items-center">
-            <Link href="/" className="flex flex-col">
+            <Link href="/" className="flex flex-col" onClick={() => setIsMobileMenuOpen(false)}>
               <span className="font-serif-display text-lg font-bold tracking-wider text-white">
                 EUREKA <span className="text-gold font-normal">ADMIN</span>
               </span>
@@ -96,6 +128,12 @@ export default function AdminLayout({
                 Tableau de bord de direction
               </span>
             </Link>
+            <button 
+              className="lg:hidden text-white/60 hover:text-white p-1"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X size={16} />
+            </button>
           </div>
 
           {/* User info */}
@@ -120,6 +158,7 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition ${isActive ? 'bg-gold text-white font-bold shadow-md' : 'hover:bg-white/5 hover:text-white'}`}
                 >
                   <IconComp size={16} />
@@ -134,6 +173,7 @@ export default function AdminLayout({
         <div className="p-6 border-t border-white/5 space-y-3">
           <Link
             href="/"
+            onClick={() => setIsMobileMenuOpen(false)}
             className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest py-3 rounded-lg transition border border-white/5"
           >
             <ArrowLeft size={12} /> Retour au Site
@@ -144,7 +184,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Admin Screen Content */}
-      <main className="flex-grow p-6 sm:p-10 overflow-y-auto max-h-screen no-scrollbar space-y-8">
+      <main className="flex-grow p-6 sm:p-10 lg:max-h-screen lg:overflow-y-auto no-scrollbar space-y-8">
         {children}
       </main>
 
