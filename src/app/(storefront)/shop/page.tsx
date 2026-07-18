@@ -11,7 +11,7 @@ import { Filter, X, Star, ChevronDown, SlidersHorizontal } from 'lucide-react';
 function Shop() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { formatPrice, t } = useLangCurr();
+  const { formatPrice, t, translateProduct } = useLangCurr();
   const { addToCart } = useCart();
 
   // Search parameters from URL
@@ -63,7 +63,7 @@ function Shop() {
 
   // Handle filtering and sorting logic
   const getFilteredProducts = () => {
-    let result = [...products];
+    let result = products.map(p => translateProduct(p));
 
     // Search query filter
     if (searchQuery.trim()) {

@@ -21,7 +21,7 @@ import {
 
 export default function HomePage() {
   const router = useRouter();
-  const { formatPrice, t } = useLangCurr();
+  const { formatPrice, t, translateProduct, language } = useLangCurr();
   const { addToCart } = useCart();
 
   // Products state
@@ -44,15 +44,15 @@ export default function HomePage() {
   const heroSlides = [
     {
       image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&auto=format&fit=crop&q=80',
-      tag: 'EUREKA LAB EXCLUSIF',
-      title: 'Des Soins Authentiques Révélant Votre Confiance',
-      desc: 'Formulés à base de plantes précieuses africaines pour hydrater, unifier et sublimer les peaux riches en mélanine.',
+      tag: language === 'EN' ? 'EXCLUSIVE EUREKA LAB' : 'EUREKA LAB EXCLUSIF',
+      title: language === 'EN' ? 'Authentic Skincare Revealing Your Confidence' : 'Des Soins Authentiques Révélant Votre Confiance',
+      desc: language === 'EN' ? 'Formulated with precious African botanicals to hydrate, even out and enhance melanin-rich skin.' : 'Formulés à base de plantes précieuses africaines pour hydrater, unifier et sublimer les peaux riches en mélanine.',
     },
     {
       image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200&auto=format&fit=crop&q=80',
-      tag: 'PARTENAIRE FENTY BEAUTY',
-      title: 'Sublimez Vos Teints Dorés et Métissés',
-      desc: 'Retrouvez nos sélections exclusives et adaptées au climat tropical. Sans effet masque, résistant à la chaleur.',
+      tag: language === 'EN' ? 'FENTY BEAUTY PARTNER' : 'PARTENAIRE FENTY BEAUTY',
+      title: language === 'EN' ? 'Enhance Your Golden and Mixed Skin Tones' : 'Sublimez Vos Teints Dorés et Métissés',
+      desc: language === 'EN' ? 'Find our exclusive selections adapted to tropical climate. Lightweight, sweat-resistant.' : 'Retrouvez nos sélections exclusives et adaptées au climat tropical. Sans effet masque, résistant à la chaleur.',
     }
   ];
 
@@ -65,6 +65,9 @@ export default function HomePage() {
     setBestSellers(prods.filter(p => p.is_featured));
     setFlashSales(prods.filter(p => p.is_flash_sale));
   };
+
+  const displayBestSellers = bestSellers.map(p => translateProduct(p));
+  const displayFlashSales = flashSales.map(p => translateProduct(p));
 
   // Load products & calculate countdown
   useEffect(() => {
@@ -231,7 +234,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          {bestSellers.map((prod) => (
+          {displayBestSellers.map((prod) => (
             <div key={prod.id} className="group bg-white rounded-xl overflow-hidden luxury-shadow-sm hover:luxury-shadow border border-gold/5 flex flex-col justify-between transition-all duration-300">
 
               <Link href={`/product/?slug=${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
@@ -337,7 +340,7 @@ export default function HomePage() {
 
             {/* Right Products grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full lg:max-w-2xl">
-              {flashSales.slice(0, 2).map((prod) => (
+              {displayFlashSales.slice(0, 2).map((prod) => (
                 <div key={prod.id} className="bg-white rounded-2xl p-4 flex gap-4 text-dark items-center shadow-lg border border-gold/10">
                   <img
                     src={prod.images[0]}

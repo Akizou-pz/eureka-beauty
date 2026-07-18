@@ -6,7 +6,7 @@ import { db, BlogPost } from '@/lib/db';
 import { Calendar, Clock, ChevronRight, BookOpen, Sparkles, X, MessageCircle } from 'lucide-react';
 
 export default function BlogPage() {
-  const { language } = useLangCurr();
+  const { language, translateBlogPost } = useLangCurr();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -22,6 +22,9 @@ export default function BlogPage() {
   const filteredPosts = selectedCategory === 'All'
     ? posts
     : posts.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+
+  const translatedPosts = filteredPosts.map(p => translateBlogPost(p));
+  const displayPost = activePost ? translateBlogPost(activePost) : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
@@ -51,7 +54,7 @@ export default function BlogPage() {
 
       {/* Grid of articles */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        {filteredPosts.map((post) => (
+        {translatedPosts.map((post) => (
           <article
             key={post.id}
             className="bg-white rounded-2xl overflow-hidden border border-gold/10 luxury-shadow-sm hover:luxury-shadow transition duration-300 flex flex-col justify-between h-[450px]"
@@ -96,14 +99,14 @@ export default function BlogPage() {
       {/* ==========================================
           FULL BLOG POST DETAIL MODAL
          ========================================== */}
-      {activePost && (
+      {activePost && displayPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-3xl rounded-2xl overflow-hidden luxury-shadow luxury-border border-gold/20 max-h-[90vh] flex flex-col">
 
             {/* Modal Header bar */}
             <div className="px-6 py-4 border-b border-gold/10 flex justify-between items-center bg-bg-cream/40">
               <span className="text-[10px] bg-gold/15 text-gold font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                {activePost.category}
+                {displayPost.category}
               </span>
               <button
                 onClick={() => setActivePost(null)}
@@ -116,25 +119,25 @@ export default function BlogPage() {
             {/* Modal Body Scroll */}
             <div className="overflow-y-auto p-6 sm:p-8 space-y-6 no-scrollbar flex-1">
               <img
-                src={activePost.image_url}
-                alt={activePost.title}
+                src={displayPost.image_url}
+                alt={displayPost.title}
                 className="w-full h-64 object-cover rounded-xl luxury-border"
               />
 
               <div className="flex items-center gap-4 text-[10px] text-dark-muted">
-                <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(activePost.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
-                <span className="flex items-center gap-1"><Clock size={12} /> {activePost.read_time}</span>
+                <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(displayPost.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
+                <span className="flex items-center gap-1"><Clock size={12} /> {displayPost.read_time}</span>
               </div>
 
               <h2 className="font-serif-display text-2xl sm:text-3xl font-semibold text-dark leading-tight">
-                {activePost.title}
+                {displayPost.title}
               </h2>
 
               <div className="w-16 h-0.5 bg-gold" />
 
               <div className="text-xs sm:text-sm text-dark-muted leading-relaxed font-light space-y-4">
-                <p className="font-semibold text-dark text-xs sm:text-sm">{activePost.summary}</p>
-                <p className="whitespace-pre-line">{activePost.content}</p>
+                <p className="font-semibold text-dark text-xs sm:text-sm">{displayPost.summary}</p>
+                <p className="whitespace-pre-line">{displayPost.content}</p>
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam volutpat purus pretium diam imperdiet dictum. Integer molestie convallis metus quis semper. Suspendisse eu mi lectus. Nam interdum facilisis urna at luctus.
                 </p>
@@ -151,7 +154,7 @@ export default function BlogPage() {
             <div className="px-6 py-4 border-t border-gold/10 bg-bg-cream/40 flex justify-between items-center text-xs">
               <span className="text-dark-muted flex items-center gap-1"><BookOpen size={14} className="text-gold" /> Eureka Magazine</span>
               <a
-                href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20j'ai%20lu%20l'article%20"${activePost.title}"%20et%20je%20souhaite%20des%20conseils...`}
+                href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20j'ai%20lu%20l'article%20"${displayPost.title}"%20et%20je%20souhaite%20des%20conseils...`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold uppercase tracking-widest px-4 py-2 rounded-lg flex items-center gap-1.5 transition"

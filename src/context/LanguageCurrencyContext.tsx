@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { Product, BlogPost } from '@/lib/db';
 
 export type Language = 'FR' | 'EN';
 export type Currency = 'XOF' | 'XAF' | 'USD' | 'EUR';
@@ -191,6 +192,8 @@ interface LanguageCurrencyContextType {
   setCurrency: (curr: Currency) => void;
   t: (key: string, replacements?: Record<string, string | number>) => string;
   formatPrice: (amountInXof: number) => string;
+  translateProduct: (product: Product) => Product;
+  translateBlogPost: (post: BlogPost) => BlogPost;
 }
 
 const LanguageCurrencyContext = createContext<LanguageCurrencyContextType | undefined>(undefined);
@@ -210,9 +213,118 @@ const CURRENCY_SYMBOLS = {
   EUR: '€',
 };
 
+const productTranslations: Record<string, Record<string, Partial<Product>>> = {
+  '00000000-0000-0000-0000-000000000101': {
+    FR: {
+      name: "Sérum Visage Shea Glow",
+      description: "Un sérum luxueux à absorption rapide qui combine l'extrait de karité biologique avec la niacinamide et l'acide hyaluronique pour hydrater intensément, apaiser et corriger l'hyperpigmentation. Parfait pour sceller l'hydratation sous les climats chauds.",
+      ingredients: "Eau, extrait de beurre de karité biologique, niacinamide (5%), acide hyaluronique, extrait d'aloe vera, centella asiatica, vitamine E, phénoxyéthanol.",
+      how_to_use: "Appliquez 3 à 4 gouttes sur le visage et le cou propres et humides matin et soir. Poursuivez avec une crème hydratante et une protection solaire.",
+      benefits: "Réduit les taches brunes, procure une hydratation en profondeur, répare la barrière cutanée et laisse un éclat magnifique et non gras."
+    }
+  },
+  '00000000-0000-0000-0000-000000000102': {
+    FR: {
+      name: "Huile Visage Baobab Radiance",
+      description: "Huile de graines de baobab pure et pressée à froid, infusée de vitamine C et de jojoba. Gorgée d'antioxydants, elle combat le vieillissement, stimule l'élasticité et redonne un éclat sain aux peaux ternes ou fatiguées.",
+      ingredients: "Huile de graines d'Adansonia Digitata (baobab) pressée à froid 100% pure, ascorbate de tétrahexyldécyle (vitamine C), huile de graines de Simmondsia Chinensis (jojoba), parfum naturel.",
+      how_to_use: "Réchauffez 2 à 3 gouttes entre vos paumes et pressez délicatement sur votre visage comme dernière étape de votre routine nocturne.",
+      benefits: "Stimule la production de collagène, atténue les ridules et offre une puissante défense antioxydante contre la pollution quotidienne."
+    }
+  },
+  '00000000-0000-0000-0000-000000000103': {
+    FR: {
+      name: "Fond de Teint Pro Filt'r Soft Matte",
+      description: "Le fond de teint primé qui brise les frontières. Donne à la peau un fini mat instantané, lisse, sans pores et sans brillance, avec une couvrance moyenne à totale, formulé pour résister à la chaleur et à l'humidité.",
+      ingredients: "Eau, diméthicone, talc, peg-10 diméthicone, triméthylsiloxysilicate, polypropylène, isododécane, cétyl peg/ppg-10/1 diméthicone, nylon-12.",
+      how_to_use: "Assurez-vous d'hydrater la peau avant d'appliquer le fond de teint. Agitez toujours avant l'emploi pour activer. Prélevez 1 à 2 pressions et estompez au pinceau ou à l'éponge.",
+      benefits: "La technologie s'adaptant au climat résiste à la transpiration, 50 teintes inclusives, formule sans huile qui n'obstrue pas les pores."
+    }
+  },
+  '00000000-0000-0000-0000-000000000104': {
+    FR: {
+      name: "Tonique Affinant à l'Hibiscus",
+      description: "Un tonique exfoliant sans alcool contenant des AHA naturels de pétales d'hibiscus et de l'acide salicylique (BHA). Élimine en douceur les cellules mortes, resserre les pores et unifie le teint sans irritation.",
+      ingredients: "Eau, extrait de fleur d'Hibiscus Sabdariffa, glycérine, acide salicylique (0,5%), hamamélis, panthénol, allantoïne.",
+      how_to_use: "Imbibez un coton et passez-le délicatement sur le visage et le cou propres, en évitant le contour des yeux. Utilisez 3 à 4 fois par semaine le soir.",
+      benefits: "Libère les pores obstrués, réduit les imperfections d'acné, affine le grain de peau et illumine les zones ternes."
+    }
+  },
+  '00000000-0000-0000-0000-000000000105': {
+    FR: {
+      name: "Rouge à Lèvres de Luxe Rouge Dior",
+      description: "Le rouge à lèvres emblématique de Dior qui offre 16 heures de confort et une couleur éclatante, disponible dans des finis satinés, mats, métallisés et velours hautement pigmentés.",
+      ingredients: "Triisostéarate de polyglycéryle-2, polyisobutène hydrogéné, cire synthétique, beurre de karité, extrait d'hibiscus rouge, extrait de fleur de grenade.",
+      how_to_use: "Appliquez directement sur les lèvres, en partant du centre et en étirant vers l'extérieur. Pour une précision maximale, dessinez d'abord le contour des lèvres.",
+      benefits: "Couleur intense, hydratation profonde des lèvres, enrichi de soin floral, fini de qualité supérieure longue tenue."
+    }
+  },
+  '00000000-0000-0000-0000-000000000106': {
+    FR: {
+      name: "Soufflé Corporel au Beurre de Cacao",
+      description: "Un beurre corporel fouetté et léger à base de beurre de cacao biologique, d'huile de coco et d'huile d'argan. Il fond instantanément sur la peau pour offrir une hydratation profonde pendant 48 heures et un doux parfum de cacao.",
+      ingredients: "Beurre de cacao biologique, huile de coco, beurre de karité fouetté, huile d'argan, huile d'amande douce, extrait naturel de vanille.",
+      how_to_use: "Massez généreusement sur la peau propre tous les jours, en insistant sur les zones sèches comme les coudes, les genoux et les talons.",
+      benefits: "Améliore l'élasticité de la peau, aide à atténuer les vergetures, adoucit la peau sèche et laisse une odeur absolument divine."
+    }
+  },
+  '00000000-0000-0000-0000-000000000107': {
+    FR: {
+      name: "Masque de Sommeil en Soie Satinée",
+      description: "Un masque de sommeil en soie de qualité supérieure, hypoallergénique. Conçu pour protéger la peau délicate du contour de vos yeux des frottements, retenir l'humidité et prévenir les ridules pendant votre sommeil.",
+      ingredients: "Tissu 100% soie satinée hypoallergénique de haute qualité, bande de confort élastique.",
+      how_to_use: "Glissez sur vos yeux avant de dormir. Laver à la main avec un savon doux et sécher à plat.",
+      benefits: "Bloque complètement la lumière, prévient les rides de sommeil, maintient l'absorption de la crème contour des yeux et évite les frottements des cils."
+    }
+  }
+};
+
+const blogPostTranslations: Record<string, Record<string, Partial<BlogPost>>> = {
+  'blog-1': {
+    FR: {
+      title: "5 Secrets de Soins pour une Peau Africaine Éclatante",
+      summary: "Découvrez le pouvoir des plantes naturelles et des routines simples pour une peau éclatante.",
+      content: "L'utilisation de beurre de karité biologique et d'huiles de baobab récoltées localement est essentielle pour retenir l'hydratation sous les climats tropicaux chauds. Appliquez toujours de la crème solaire, même sur les peaux foncées, pour vous protéger contre l'hyperpigmentation et les dommages causés par les rayons ultraviolets."
+    }
+  },
+  'blog-2': {
+    FR: {
+      title: "Comment Assortir son Fond de Teint aux Peaux Mélanines Riches",
+      summary: "Un guide complet pour identifier vos sous-tons et trouver votre teinte idéale.",
+      content: "Trouver la teinte de fond de teint parfaite peut être un défi. Nous décrivons les différences entre les sous-tons chauds, froids et neutres, en montrant comment des marques de premier plan comme Fenty Beauty proposent de magnifiques options non ternes pour les peaux foncées et dorées."
+    }
+  }
+};
+
 export const LanguageCurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('FR');
   const [currency, setCurrency] = useState<Currency>('XOF');
+
+  const translateProduct = (product: Product): Product => {
+    if (language === 'EN') return product;
+    const trans = productTranslations[product.id];
+    if (!trans || !trans['FR']) return product;
+    return {
+      ...product,
+      name: trans['FR'].name || product.name,
+      description: trans['FR'].description || product.description,
+      ingredients: trans['FR'].ingredients || product.ingredients,
+      how_to_use: trans['FR'].how_to_use || product.how_to_use,
+      benefits: trans['FR'].benefits || product.benefits
+    };
+  };
+
+  const translateBlogPost = (post: BlogPost): BlogPost => {
+    if (language === 'EN') return post;
+    const trans = blogPostTranslations[post.id];
+    if (!trans || !trans['FR']) return post;
+    return {
+      ...post,
+      title: trans['FR'].title || post.title,
+      summary: trans['FR'].summary || post.summary,
+      content: trans['FR'].content || post.content
+    };
+  };
 
   // Automatically detect user language/currency from country timezone on mount
   useEffect(() => {
@@ -298,6 +410,8 @@ export const LanguageCurrencyProvider: React.FC<{ children: React.ReactNode }> =
         setCurrency: handleSetCurrency,
         t,
         formatPrice,
+        translateProduct,
+        translateBlogPost,
       }}
     >
       {children}

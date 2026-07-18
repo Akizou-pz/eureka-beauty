@@ -28,7 +28,7 @@ import {
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { language, currency, setLanguage, setCurrency, t, formatPrice } = useLangCurr();
+  const { language, currency, setLanguage, setCurrency, t, formatPrice, translateProduct } = useLangCurr();
   const { user, logout } = useAuth();
   const {
     cart,
@@ -84,7 +84,7 @@ export default function Header() {
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
       const q = searchQuery.toLowerCase();
-      const allProds = db.getProducts();
+      const allProds = db.getProducts().map(p => translateProduct(p));
       const filtered = allProds.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -96,7 +96,7 @@ export default function Header() {
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, language]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,58 +405,64 @@ export default function Header() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {cart.map((item) => (
-                      <div key={item.product_id} className="flex gap-4 border-b border-gold/5 pb-6">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg bg-bg-cream luxury-border flex-shrink-0"
-                        />
-                        <div className="flex-1 flex flex-col justify-between">
-                          <div>
-                            <div className="flex justify-between text-xs font-semibold text-dark">
-                              <h3 className="truncate max-w-[180px]">{item.name}</h3>
-                              <p className="text-gold font-bold">
-                                {formatPrice(item.price_xof * (1 - item.discount_percent / 100) * item.quantity)}
-                              </p>
-                            </div>
-                            {item.discount_percent > 0 && (
-                              <p className="text-[10px] text-accent mt-0.5 font-bold">
-                                {t('discountOff', { percent: item.discount_percent })}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center justify-between text-[11px] mt-2">
-                            {/* Quantity Adjuster */}
-                            <div className="flex items-center border border-gold/15 rounded-md bg-bg-cream overflow-hidden">
-                              <button
-                                onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                                className="p-1 hover:text-gold transition"
-                              >
-                                <Minus size={12} />
-                              </button>
-                              <span className="px-2 font-bold text-dark">{item.quantity}</span>
-                              <button
-                                onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                                className="p-1 hover:text-gold transition"
-                              >
-                                <Plus size={12} />
-                              </button>
+                    {cart.map((item) => {
+                      const translatedName = (() => {
+                        const prod = db.getProductById(item.product_id);
+                        return prod ? translateProduct(prod).name : item.name;
+                      })();
+                      return (
+                        <div key={item.product_id} className="flex gap-4 border-b border-gold/5 pb-6">
+                          <img
+                            src={item.image}
+                            alt={translatedName}
+                            className="w-16 h-16 object-cover rounded-lg bg-bg-cream luxury-border flex-shrink-0"
+                          />
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <div className="flex justify-between text-xs font-semibold text-dark">
+                                <h3 className="truncate max-w-[180px]">{translatedName}</h3>
+                                <p className="text-gold font-bold">
+                                  {formatPrice(item.price_xof * (1 - item.discount_percent / 100) * item.quantity)}
+                                </p>
+                              </div>
+                              {item.discount_percent > 0 && (
+                                <p className="text-[10px] text-accent mt-0.5 font-bold">
+                                  {t('discountOff', { percent: item.discount_percent })}
+                                </p>
+                              )}
                             </div>
 
-                            {/* Remove button */}
-                            <button
-                              onClick={() => removeFromCart(item.product_id)}
-                              className="text-dark-muted hover:text-error transition flex items-center gap-1"
-                            >
-                              <Trash2 size={12} />
-                              <span>{t('remove')}</span>
-                            </button>
+                            <div className="flex items-center justify-between text-[11px] mt-2">
+                              {/* Quantity Adjuster */}
+                              <div className="flex items-center border border-gold/15 rounded-md bg-bg-cream overflow-hidden">
+                                <button
+                                  onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                  className="p-1 hover:text-gold transition"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                <span className="px-2 font-bold text-dark">{item.quantity}</span>
+                                <button
+                                  onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                                  className="p-1 hover:text-gold transition"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+
+                              {/* Remove button */}
+                              <button
+                                onClick={() => removeFromCart(item.product_id)}
+                                className="text-dark-muted hover:text-error transition flex items-center gap-1"
+                              >
+                                <Trash2 size={12} />
+                                <span>{t('remove')}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -25,7 +25,7 @@ export default function ProductDetailClient() {
   const searchParams = useSearchParams();
   const slug = searchParams.get('slug') || '';
 
-  const { formatPrice, t } = useLangCurr();
+  const { formatPrice, t, translateProduct } = useLangCurr();
   const { addToCart, clearCart } = useCart();
 
   // Component states
@@ -113,13 +113,17 @@ export default function ProductDetailClient() {
     );
   }
 
+  const displayProduct = translateProduct(product);
+  const displayRelated = relatedProducts.map(p => translateProduct(p));
+  const displayBundle = bundleProducts.map(p => translateProduct(p));
+
   // Price calculations
-  const discountedUnitPrice = product.price_xof * (1 - product.discount_percent / 100);
-  const isLowStock = product.stock > 0 && product.stock <= 5;
-  const isOutOfStock = product.stock === 0;
+  const discountedUnitPrice = displayProduct.price_xof * (1 - displayProduct.discount_percent / 100);
+  const isLowStock = displayProduct.stock > 0 && displayProduct.stock <= 5;
+  const isOutOfStock = displayProduct.stock === 0;
 
   // Bundle calculations
-  const bundleSubtotal = discountedUnitPrice + bundleProducts.reduce((sum, p) => sum + p.price_xof * (1 - p.discount_percent / 100), 0);
+  const bundleSubtotal = discountedUnitPrice + displayBundle.reduce((sum, p) => sum + p.price_xof * (1 - p.discount_percent / 100), 0);
   const bundleDiscountedTotal = bundleSubtotal * 0.9; // 10% discount on bundle!
 
   const handleAddBundleToCart = () => {
@@ -168,14 +172,14 @@ export default function ProductDetailClient() {
         {/* Left Column: Gallery */}
         <div className="space-y-4">
           <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative">
-            {product.discount_percent > 0 && (
+            {displayProduct.discount_percent > 0 && (
               <span className="absolute top-4 left-4 bg-accent text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg shadow z-10">
-                -{product.discount_percent}% OFF
+                -{displayProduct.discount_percent}% OFF
               </span>
             )}
-            {isVideoActive && product.video_url ? (
+            {isVideoActive && displayProduct.video_url ? (
               (() => {
-                const url = product.video_url;
+                const url = displayProduct.video_url;
                 const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
                 if (isYouTube) {
                   let videoId = '';
@@ -189,7 +193,7 @@ export default function ProductDetailClient() {
                   return (
                     <iframe
                       src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                      title={product?.name}
+                      title={displayProduct?.name}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="w-full h-full border-0"
@@ -211,16 +215,16 @@ export default function ProductDetailClient() {
             ) : (
               <img
                 src={activeImage}
-                alt={product.name}
+                alt={displayProduct.name}
                 className="w-full h-full object-cover"
               />
             )}
           </div>
           
           {/* Thumbnails */}
-          {(product.images.length > 1 || product.video_url) && (
+          {(displayProduct.images.length > 1 || displayProduct.video_url) && (
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-              {product.images.map((imgUrl, idx) => (
+              {displayProduct.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
@@ -229,11 +233,11 @@ export default function ProductDetailClient() {
                   }}
                   className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
                 >
-                  <img src={imgUrl} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
+                  <img src={imgUrl} alt={`${displayProduct.name} ${idx}`} className="w-full h-full object-cover" />
                 </button>
               ))}
 
-              {product.video_url && (
+              {displayProduct.video_url && (
                 <button
                   onClick={() => setIsVideoActive(true)}
                   className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
@@ -252,10 +256,10 @@ export default function ProductDetailClient() {
         <div className="space-y-6">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-widest text-gold font-bold">
-              {db.getBrands().find(b => b.id === product.brand_id)?.name || 'EUREKA LAB'}
+              {db.getBrands().find(b => b.id === displayProduct.brand_id)?.name || 'EUREKA LAB'}
             </p>
             <h1 className="font-serif-display text-3xl sm:text-4xl font-semibold text-dark">
-              {product.name}
+              {displayProduct.name}
             </h1>
             
             {/* Reviews Summary */}
@@ -265,12 +269,12 @@ export default function ProductDetailClient() {
                   <Star
                     key={i}
                     size={14}
-                    fill={i < Math.floor(product.rating) ? 'currentColor' : 'none'}
+                    fill={i < Math.floor(displayProduct.rating) ? 'currentColor' : 'none'}
                     className="text-gold"
                   />
                 ))}
               </div>
-              <span className="text-xs font-bold text-dark">{product.rating}</span>
+              <span className="text-xs font-bold text-dark">{displayProduct.rating}</span>
               <span className="text-xs text-dark-muted font-light">{t('reviewsCount', { count: reviews.length })}</span>
             </div>
           </div>
@@ -278,18 +282,18 @@ export default function ProductDetailClient() {
           {/* Pricing */}
           <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between">
             <div className="flex items-end gap-3">
-              {product.discount_percent > 0 ? (
+              {displayProduct.discount_percent > 0 ? (
                 <>
                   <span className="text-2xl font-bold text-gold font-serif-display">
                     {formatPrice(discountedUnitPrice)}
                   </span>
                   <span className="text-sm text-dark-muted line-through mb-1">
-                    {formatPrice(product.price_xof)}
+                    {formatPrice(displayProduct.price_xof)}
                   </span>
                 </>
               ) : (
                 <span className="text-2xl font-bold text-dark font-serif-display">
-                  {formatPrice(product.price_xof)}
+                  {formatPrice(displayProduct.price_xof)}
                 </span>
               )}
             </div>
@@ -302,7 +306,7 @@ export default function ProductDetailClient() {
                 </span>
               ) : isLowStock ? (
                 <span className="flex items-center gap-1 text-xs text-accent font-bold bg-accent/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                  <AlertTriangle size={12} /> {t('onlyLeft', { count: product.stock })}
+                  <AlertTriangle size={12} /> {t('onlyLeft', { count: displayProduct.stock })}
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-xs text-success font-bold bg-success/10 px-3 py-1 rounded-full uppercase tracking-wider">
@@ -316,16 +320,16 @@ export default function ProductDetailClient() {
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
               <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinTypeLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block">{product.skin_type === 'All' ? t('allSkinTypesLabel') : product.skin_type}</span>
+              <span className="font-semibold text-dark mt-0.5 block">{displayProduct.skin_type === 'All' ? t('allSkinTypesLabel') : displayProduct.skin_type}</span>
             </div>
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
               <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinConcernLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block">{product.skin_concern}</span>
+              <span className="font-semibold text-dark mt-0.5 block">{displayProduct.skin_concern}</span>
             </div>
           </div>
 
           <p className="text-xs text-dark-muted leading-relaxed font-light">
-            {product.description}
+            {displayProduct.description}
           </p>
 
           {/* Add to Cart Actions */}
@@ -394,7 +398,7 @@ export default function ProductDetailClient() {
 
 
       {/* 2. Frequently Bought Together Upsell */}
-      {bundleProducts.length >= 2 && (
+      {displayBundle.length >= 2 && (
         <section className="bg-bg-cream/40 border border-gold/15 rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow-sm">
           <h3 className="font-serif-display font-semibold text-lg text-dark tracking-wider flex items-center gap-2">
             <Sparkles size={18} className="text-gold animate-pulse" />
@@ -407,22 +411,22 @@ export default function ProductDetailClient() {
             <div className="flex flex-wrap items-center justify-center gap-3">
               {/* Product 1 (This) */}
               <div className="text-center">
-                <img src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
-                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{product.name}</span>
+                <img src={displayProduct.images[0]} alt={displayProduct.name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{displayProduct.name}</span>
               </div>
               <span className="text-xl text-gold font-bold">+</span>
               
               {/* Bundle 1 */}
               <div className="text-center">
-                <img src={bundleProducts[0].images[0]} alt={bundleProducts[0].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
-                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{bundleProducts[0].name}</span>
+                <img src={displayBundle[0].images[0]} alt={displayBundle[0].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{displayBundle[0].name}</span>
               </div>
               <span className="text-xl text-gold font-bold">+</span>
 
               {/* Bundle 2 */}
               <div className="text-center">
-                <img src={bundleProducts[1].images[0]} alt={bundleProducts[1].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
-                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{bundleProducts[1].name}</span>
+                <img src={displayBundle[1].images[0]} alt={displayBundle[1].name} className="w-16 h-16 object-cover rounded-lg bg-white luxury-border" />
+                <span className="text-[10px] truncate max-w-[80px] block mt-1 text-dark-muted">{displayBundle[1].name}</span>
               </div>
             </div>
 
@@ -476,23 +480,23 @@ export default function ProductDetailClient() {
         <div className="text-xs text-dark-muted leading-relaxed font-light min-h-[120px]">
           {activeTab === 'details' && (
             <div className="space-y-3 px-1">
-              <p>{product.description}</p>
+              <p>{displayProduct.description}</p>
               <h4 className="font-semibold text-dark mt-4">{t('benefits')} :</h4>
-              <p>{product.benefits || 'Améliore la barrière protectrice cutanée, unifie et lisse le grain de peau.'}</p>
+              <p>{displayProduct.benefits || 'Améliore la barrière protectrice cutanée, unifie et lisse le grain de peau.'}</p>
             </div>
           )}
 
           {activeTab === 'ingredients' && (
             <div className="space-y-2 px-1">
               <p className="font-semibold text-dark">{t('authenticFormula')}</p>
-              <p className="italic">{product.ingredients || t('ingredientsNotAvailable')}</p>
+              <p className="italic">{displayProduct.ingredients || t('ingredientsNotAvailable')}</p>
             </div>
           )}
 
           {activeTab === 'how-to' && (
             <div className="space-y-2 px-1">
               <p className="font-semibold text-dark">{t('beautyTips')}</p>
-              <p>{product.how_to_use || t('defaultHowToUse')}</p>
+              <p>{displayProduct.how_to_use || t('defaultHowToUse')}</p>
             </div>
           )}
 
@@ -614,8 +618,8 @@ export default function ProductDetailClient() {
       </section>
 
 
-      {/* 4. Related Products Grid */}
-      {relatedProducts.length > 0 && (
+      {/* 4. Recommended Products Grid */}
+      {displayRelated.length > 0 && (
         <section className="space-y-8">
           <div className="text-center space-y-1">
             <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">{t('toCompleteRoutine')}</span>
@@ -624,7 +628,7 @@ export default function ProductDetailClient() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            {relatedProducts.map((prod) => (
+            {displayRelated.map((prod) => (
               <div key={prod.id} className="group bg-white rounded-xl overflow-hidden luxury-shadow-sm hover:luxury-shadow border border-gold/5 flex flex-col justify-between transition-all duration-300">
                 <Link href={`/product/?slug=${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
                   <img src={prod.images[0]} alt={prod.name} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
