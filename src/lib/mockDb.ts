@@ -5,6 +5,14 @@ const HAS_SUPABASE_CREDS =
   process.env.NEXT_PUBLIC_SUPABASE_URL && 
   (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
+export const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export interface Category {
   id: string;
   name: string;
@@ -157,56 +165,56 @@ export interface Testimonial {
 
 const seedCategories: Category[] = [
   {
-    id: 'cat-skincare',
+    id: '00000000-0000-0000-0000-000000000001',
     name: 'Skincare',
     slug: 'skincare',
     description: 'Luxurious treatments for clean, glowing skin.',
-    image_url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=600',
+    image_url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=600',
   },
   {
-    id: 'cat-cosmetics',
+    id: '00000000-0000-0000-0000-000000000002',
     name: 'Cosmetics',
     slug: 'cosmetics',
     description: 'Rich palettes and finishes tailored to enhance African skin tones.',
-    image_url: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=600',
+    image_url: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600',
   },
   {
-    id: 'cat-wellness',
+    id: '00000000-0000-0000-0000-000000000003',
     name: 'Wellness',
     slug: 'wellness',
     description: 'Nourishing oils, supplements and body treatments.',
-    image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=600',
+    image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=600',
   },
   {
-    id: 'cat-accessories',
+    id: '00000000-0000-0000-0000-000000000004',
     name: 'Accessories',
     slug: 'accessories',
     description: 'Premium beauty applicators and luxury storage items.',
-    image_url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=600',
+    image_url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=600',
   },
 ];
 
 const seedBrands: Brand[] = [
   {
-    id: 'br-eureka',
+    id: '00000000-0000-0000-0000-000000000011',
     name: 'Eureka Lab',
     slug: 'eureka-lab',
     description: 'In-house luxury formulations powered by African botanicals.',
   },
   {
-    id: 'br-fenty',
+    id: '00000000-0000-0000-0000-000000000012',
     name: 'Fenty Beauty',
     slug: 'fenty-beauty',
     description: 'Premium inclusive cosmetics for all skin shades.',
   },
   {
-    id: 'br-dior',
+    id: '00000000-0000-0000-0000-000000000013',
     name: 'Dior Beauty',
     slug: 'dior-beauty',
     description: 'High-end French cosmetics and luxury treatments.',
   },
   {
-    id: 'br-aura',
+    id: '00000000-0000-0000-0000-000000000014',
     name: 'Aura Wellness',
     slug: 'aura-wellness',
     description: 'Holistic beauty from the inside out.',
@@ -215,9 +223,9 @@ const seedBrands: Brand[] = [
 
 const seedProducts: Product[] = [
   {
-    id: 'prod-sheaglow',
-    category_id: 'cat-skincare',
-    brand_id: 'br-eureka',
+    id: '00000000-0000-0000-0000-000000000101',
+    category_id: '00000000-0000-0000-0000-000000000001',
+    brand_id: '00000000-0000-0000-0000-000000000011',
     name: 'Shea Glow Face Serum',
     slug: 'shea-glow-face-serum',
     description: 'A luxurious, fast-absorbing serum that combines organic Shea extract with Niacinamide and Hyaluronic Acid to intensely hydrate, soothe, and correct hyperpigmentation. Perfect for locking in moisture in warm climates.',
@@ -242,9 +250,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-baobaboil',
-    category_id: 'cat-skincare',
-    brand_id: 'br-eureka',
+    id: '00000000-0000-0000-0000-000000000102',
+    category_id: '00000000-0000-0000-0000-000000000001',
+    brand_id: '00000000-0000-0000-0000-000000000011',
     name: 'Baobab Radiance Face Oil',
     slug: 'baobab-radiance-face-oil',
     description: 'Pure, cold-pressed Baobab seed oil infused with Vitamin C and Jojoba. Packed with antioxidants, it combats aging, boosts elasticity, and restores a healthy, radiant bounce to dull or tired skin.',
@@ -268,9 +276,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-fentyfound',
-    category_id: 'cat-cosmetics',
-    brand_id: 'br-fenty',
+    id: '00000000-0000-0000-0000-000000000103',
+    category_id: '00000000-0000-0000-0000-000000000002',
+    brand_id: '00000000-0000-0000-0000-000000000012',
     name: 'Pro Filt\'r Soft Matte Foundation',
     slug: 'pro-filtr-soft-matte-foundation',
     description: 'The award-winning boundary-breaking foundation. Gives skin an instantly smooth, pore-diffused, shine-free finish that easily builds to medium to full coverage, tailored to withstand heat and humidity.',
@@ -294,9 +302,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-hibiscustoner',
-    category_id: 'cat-skincare',
-    brand_id: 'br-aura',
+    id: '00000000-0000-0000-0000-000000000104',
+    category_id: '00000000-0000-0000-0000-000000000001',
+    brand_id: '00000000-0000-0000-0000-000000000014',
     name: 'Hibiscus Refining Toner',
     slug: 'hibiscus-refining-toner',
     description: 'An alcohol-free exfoliating toner containing natural AHA from Hibiscus petals and Salicylic Acid (BHA). Gently dissolves dead skin cells, tightens pores, and evens out skin tone without irritation.',
@@ -320,9 +328,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-diorrouge',
-    category_id: 'cat-cosmetics',
-    brand_id: 'br-dior',
+    id: '00000000-0000-0000-0000-000000000105',
+    category_id: '00000000-0000-0000-0000-000000000002',
+    brand_id: '00000000-0000-0000-0000-000000000013',
     name: 'Rouge Dior Luxury Lipstick',
     slug: 'rouge-dior-luxury-lipstick',
     description: 'The iconic Dior lipstick that offers 16 hours of comfort and radiant color, available in highly pigmented satin, matte, metallic, and velvet finishes.',
@@ -346,9 +354,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-cocoasouffle',
-    category_id: 'cat-wellness',
-    brand_id: 'br-aura',
+    id: '00000000-0000-0000-0000-000000000106',
+    category_id: '00000000-0000-0000-0000-000000000003',
+    brand_id: '00000000-0000-0000-0000-000000000014',
     name: 'Cocoa Butter Body Soufflé',
     slug: 'cocoa-butter-body-souffle',
     description: 'A whipped, feather-light body butter made with organic cocoa butter, coconut oil, and argan oil. It melts instantly into the skin to provide 48-hour deep hydration and a sweet cocoa aroma.',
@@ -372,9 +380,9 @@ const seedProducts: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    id: 'prod-silkmask',
-    category_id: 'cat-accessories',
-    brand_id: 'br-eureka',
+    id: '00000000-0000-0000-0000-000000000107',
+    category_id: '00000000-0000-0000-0000-000000000004',
+    brand_id: '00000000-0000-0000-0000-000000000011',
     name: 'Satin Silk Eye Mask',
     slug: 'satin-silk-eye-mask',
     description: 'A premium, hypoallergenic satin silk sleeping mask. Designed to protect the delicate skin around your eyes from friction, retaining moisture and preventing fine lines while you sleep.',
@@ -479,9 +487,9 @@ const seedBlogPosts: BlogPost[] = [
 ];
 
 const seedReviews: Review[] = [
-  { id: 'rev-1', product_id: 'prod-sheaglow', customer_name: 'Khady Diop', rating: 5, comment: 'C\'est magnifique! Mes taches sombres disparaissent après deux semaines.', is_verified_buyer: true, helpful_votes: 12, created_at: new Date().toISOString() },
-  { id: 'rev-2', product_id: 'prod-sheaglow', customer_name: 'Marie N\'goran', rating: 4, comment: 'Très hydratant et agréable sur le visage. Je recommande.', is_verified_buyer: true, helpful_votes: 5, created_at: new Date().toISOString() },
-  { id: 'rev-3', product_id: 'prod-baobaboil', customer_name: 'Fanta Touré', rating: 5, comment: 'L\'huile de Baobab est incroyable, elle redonne vie à ma peau sèche.', is_verified_buyer: true, helpful_votes: 8, created_at: new Date().toISOString() },
+  { id: '00000000-0000-0000-0000-000000000901', product_id: '00000000-0000-0000-0000-000000000101', customer_name: 'Khady Diop', rating: 5, comment: 'C\'est magnifique! Mes taches sombres disparaissent après deux semaines.', is_verified_buyer: true, helpful_votes: 12, created_at: new Date().toISOString() },
+  { id: '00000000-0000-0000-0000-000000000902', product_id: '00000000-0000-0000-0000-000000000101', customer_name: 'Marie N\'goran', rating: 4, comment: 'Très hydratant et agréable sur le visage. Je recommande.', is_verified_buyer: true, helpful_votes: 5, created_at: new Date().toISOString() },
+  { id: '00000000-0000-0000-0000-000000000903', product_id: '00000000-0000-0000-0000-000000000102', customer_name: 'Fanta Touré', rating: 5, comment: 'L\'huile de Baobab est incroyable, elle redonne vie à ma peau sèche.', is_verified_buyer: true, helpful_votes: 8, created_at: new Date().toISOString() },
 ];
 
 // -----------------------------------------------------------------------------
@@ -588,7 +596,7 @@ class MockDB {
     const products = this.getProducts();
     const newProduct: Product = {
       ...product,
-      id: 'prod-' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       rating: 0,
       review_count: 0,
       created_at: new Date().toISOString(),
@@ -649,7 +657,7 @@ class MockDB {
     const coupons = this.getCoupons();
     const newCoupon: Coupon = {
       ...coupon,
-      id: 'coupon-' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
     };
     coupons.push(newCoupon);
     this.set('eb_coupons', coupons);
@@ -683,7 +691,7 @@ class MockDB {
     const countries = this.getShippingCountries();
     const newCountry: ShippingCountry = {
       ...data,
-      id: 'ship-' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
     };
     countries.push(newCountry);
     this.set('eb_shipping_countries', countries);
@@ -750,7 +758,7 @@ class MockDB {
   addReview(productId: string, name: string, rating: number, comment: string): Review {
     const reviews = this.get<Review[]>('eb_reviews', seedReviews);
     const newReview: Review = {
-      id: 'rev-' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       product_id: productId,
       customer_name: name,
       rating,
@@ -810,7 +818,7 @@ class MockDB {
 
     const newOrder: Order = {
       ...orderData,
-      id: 'ord-' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       order_number: orderNumber,
       order_status: 'Confirmed',
       payment_status: orderData.payment_method === 'COD' ? 'Pending' : 'Paid',
