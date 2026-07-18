@@ -18,13 +18,29 @@ export default function AdminOrdersPage() {
   const [isPrinting, setIsPrinting] = useState(false);
 
   const loadOrders = () => {
-    setOrders(db.getOrders());
+    const allOrders = db.getOrders();
+    setOrders(allOrders);
+    setSelectedOrder((prev) => {
+      if (!prev) return null;
+      return allOrders.find((o) => o.id === prev.id) || null;
+    });
   };
 
   useEffect(() => {
     loadOrders();
     window.addEventListener('supabase_sync_complete', loadOrders);
-    return () => window.removeEventListener('supabase_sync_complete', loadOrders);
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'eb_orders') {
+        loadOrders();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('supabase_sync_complete', loadOrders);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const handleStatusChange = (id: string, status: Order['order_status']) => {

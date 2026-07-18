@@ -985,6 +985,10 @@ class MockDB {
       });
     }
 
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+    }
+
     return orders[idx];
   }
 

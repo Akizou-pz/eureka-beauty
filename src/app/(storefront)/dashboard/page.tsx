@@ -96,7 +96,18 @@ function CustomerDashboard() {
 
   useEffect(() => {
     window.addEventListener('supabase_sync_complete', loadDeliveryOrders);
-    return () => window.removeEventListener('supabase_sync_complete', loadDeliveryOrders);
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'eb_orders') {
+        loadDeliveryOrders();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('supabase_sync_complete', loadDeliveryOrders);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, [user]);
 
   const handleDeliveryStatusChange = (orderId: string, status: Order['order_status']) => {
