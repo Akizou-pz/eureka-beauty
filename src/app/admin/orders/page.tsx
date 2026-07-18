@@ -10,10 +10,10 @@ export default function AdminOrdersPage() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Selection/detail state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   // Print Mode State
   const [isPrinting, setIsPrinting] = useState(false);
 
@@ -73,14 +73,14 @@ export default function AdminOrdersPage() {
             margin: 1.5cm;
           }
         `}</style>
-        
+
         {/* Invoice Header */}
         <div className="flex justify-between items-start border-b border-[#c5a880] pb-6">
           <div className="space-y-1">
             <span className="font-serif text-2xl font-bold tracking-wider text-black">
               EUREKA <span className="text-[#c5a880] font-normal">BEAUTY</span>
             </span>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[#c5a880] font-semibold">Reveal Your Natural Beauty</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[#c5a880] font-semibold">Revelez votre beauté naturelle</p>
             <p className="text-xs text-gray-500 mt-2">Lomé, Togo</p>
             <p className="text-xs text-gray-500">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
           </div>
@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-8 fade-in text-white print:text-dark print:bg-white print:p-0">
-      
+
       {/* 1. Page Header (hidden during print) */}
       <div className="flex justify-between items-center border-b border-white/5 pb-6 print:hidden">
         <div>
@@ -185,10 +185,10 @@ export default function AdminOrdersPage() {
 
       {/* 2. Search & List Layout (hidden during print) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start print:hidden">
-        
+
         {/* Orders Table Grid (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
-          
+
           {/* Search box */}
           <div className="bg-[#141414] border border-white/5 p-4 rounded-xl flex items-center gap-2">
             <Search size={16} className="text-white/40" />
@@ -220,8 +220,8 @@ export default function AdminOrdersPage() {
                     </tr>
                   ) : (
                     filteredOrders.map((ord) => (
-                      <tr 
-                        key={ord.id} 
+                      <tr
+                        key={ord.id}
                         onClick={() => setSelectedOrder(ord)}
                         className={`hover:bg-white/[0.02] transition cursor-pointer ${selectedOrder?.id === ord.id ? 'bg-white/5' : ''}`}
                       >
@@ -268,13 +268,13 @@ export default function AdminOrdersPage() {
         <div className="lg:col-span-5">
           {selectedOrder ? (
             <div className="bg-[#141414] border border-white/5 rounded-2xl p-6 space-y-6 luxury-shadow sticky top-24">
-              
+
               <div className="flex justify-between items-center border-b border-white/5 pb-4">
                 <div>
                   <h3 className="font-serif-display font-semibold text-sm text-white">Détails Commande</h3>
                   <p className="text-[10px] text-gold mt-0.5">{selectedOrder.order_number}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => handlePrint(selectedOrder)}
                   className="bg-white/5 hover:bg-gold hover:text-white border border-white/10 rounded-lg p-2 transition flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-white"
                 >
@@ -394,7 +394,7 @@ export default function AdminOrdersPage() {
          ========================================== */}
       {selectedOrder && (
         <div className="hidden print:block bg-white text-black p-8 font-sans space-y-8 w-[21cm]">
-          
+
           {/* Invoice Header */}
           <div className="flex justify-between items-start border-b-2 border-dark pb-6">
             <div>
