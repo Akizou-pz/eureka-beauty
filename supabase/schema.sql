@@ -104,7 +104,8 @@ CREATE TABLE customers (
     email VARCHAR(150) UNIQUE NOT NULL,
     phone VARCHAR(50),
     whatsapp VARCHAR(50),
-    loyalty_points INT DEFAULT 0
+    loyalty_points INT DEFAULT 0,
+    role VARCHAR(50) DEFAULT 'customer'
 );
 
 -- Create trigger function to automatically copy new auth users to customers (supports Google, Facebook & Email metadata)
