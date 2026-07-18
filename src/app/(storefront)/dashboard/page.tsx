@@ -27,7 +27,7 @@ import {
 function CustomerDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, login, register, logout, updateProfile, loading } = useAuth();
+  const { user, login, register, logout, updateProfile, loading, signInWithGoogle, signInWithFacebook } = useAuth();
   const { addToCart } = useCart();
   const { formatPrice } = useLangCurr();
 
@@ -77,6 +77,28 @@ function CustomerDashboard() {
       setWishlistItems(wishlistProds);
     }
   }, [user]);
+
+  const [socialLoading, setSocialLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg('');
+    setSocialLoading(true);
+    const res = await signInWithGoogle();
+    setSocialLoading(false);
+    if (!res.success && res.error) {
+      setErrorMsg(res.error);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    setErrorMsg('');
+    setSocialLoading(true);
+    const res = await signInWithFacebook();
+    setSocialLoading(false);
+    if (!res.success && res.error) {
+      setErrorMsg(res.error);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,10 +323,20 @@ function CustomerDashboard() {
           <div className="space-y-3 pt-4 border-t border-gold/10 text-center">
             <span className="text-[9px] uppercase tracking-widest text-dark-muted font-semibold">Ou continuer avec</span>
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <button onClick={() => alert('Simulation de connexion Google...')} className="flex items-center justify-center gap-2 border border-gold/15 rounded-lg py-2.5 hover:bg-bg-cream transition">
+              <button 
+                type="button"
+                onClick={handleGoogleLogin} 
+                disabled={socialLoading}
+                className="flex items-center justify-center gap-2 border border-gold/15 rounded-lg py-2.5 hover:bg-bg-cream transition disabled:opacity-50"
+              >
                 <Globe size={14} className="text-[#DB4437]" /> Google
               </button>
-              <button onClick={() => alert('Simulation de connexion Facebook...')} className="flex items-center justify-center gap-2 border border-gold/15 rounded-lg py-2.5 hover:bg-bg-cream transition">
+              <button 
+                type="button"
+                onClick={handleFacebookLogin} 
+                disabled={socialLoading}
+                className="flex items-center justify-center gap-2 border border-gold/15 rounded-lg py-2.5 hover:bg-bg-cream transition disabled:opacity-50"
+              >
                 <svg className="w-3.5 h-3.5 text-[#4267B2] fill-current" viewBox="0 0 24 24">
                   <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
                 </svg>
