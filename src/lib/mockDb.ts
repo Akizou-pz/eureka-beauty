@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 
 const HAS_SUPABASE_CREDS = 
   process.env.NEXT_PUBLIC_SUPABASE_URL && 
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 export interface Category {
   id: string;
