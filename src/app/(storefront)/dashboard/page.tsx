@@ -241,12 +241,6 @@ function CustomerDashboard() {
               >
                 Se connecter
               </button>
-
-              <div className="text-[10px] text-dark-muted font-light bg-bg-cream p-3 rounded-lg border border-gold/10 space-y-1 mt-4">
-                <p className="font-bold text-gold uppercase tracking-wider">Comptes de test pré-installés :</p>
-                <p>• <strong>Compte Admin:</strong> admin@eurekabeauty.com (Mot de passe: admin123)</p>
-                <p>• <strong>Compte Client:</strong> customer@eurekabeauty.com (Mot de passe: customer123)</p>
-              </div>
             </form>
           ) : (
             // REGISTER FORM

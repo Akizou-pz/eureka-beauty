@@ -52,12 +52,6 @@ export default function AdminLayout({
             </p>
           </div>
 
-          <div className="bg-bg-cream p-4 rounded-xl text-left text-xs text-dark-muted border border-gold/10 space-y-1">
-            <p className="font-bold text-gold uppercase tracking-wider">Identifiants Admin de test :</p>
-            <p>• <strong>E-mail :</strong> admin@eurekabeauty.com</p>
-            <p>• <strong>Mot de passe :</strong> admin123</p>
-          </div>
-
           <div className="pt-2 flex flex-col gap-3">
             <Link
               href="/dashboard?auth=login"

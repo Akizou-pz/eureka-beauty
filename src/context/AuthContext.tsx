@@ -101,41 +101,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; isAdmin?: boolean }> => {
     const lowerEmail = email.toLowerCase();
     
-    // 1. Static mock login overrides for rapid testing/admin demo
-    if (lowerEmail === 'admin@eurekabeauty.com' && password === 'admin123') {
-      const adminUser: Customer = {
-        id: 'cust-admin-001',
-        first_name: 'Directrice',
-        last_name: 'Eureka',
-        email: lowerEmail,
-        phone: '+225 07070707',
-        whatsapp: '+225 07070707',
-        loyalty_points: 9999,
-        role: 'admin',
-      };
-      setUser(adminUser);
-      localStorage.setItem('eb_session', JSON.stringify(adminUser));
-      return { success: true, isAdmin: true };
-    }
-
-    if (lowerEmail === 'customer@eurekabeauty.com' && password === 'customer123') {
-      const customerUser: Customer = {
-        id: 'cust-customer-001',
-        first_name: 'Fatou',
-        last_name: 'Diallo',
-        email: lowerEmail,
-        phone: '+221 77 123 45 67',
-        whatsapp: '+221 77 123 45 67',
-        loyalty_points: 150,
-        role: 'customer',
-      };
-      setUser(customerUser);
-      localStorage.setItem('eb_session', JSON.stringify(customerUser));
-      return { success: true, isAdmin: false };
-    }
-
     if (HAS_SUPABASE_CREDS) {
-      // 2. Supabase Auth Login
+      // 1. Supabase Auth Login
       const { data, error } = await supabase.auth.signInWithPassword({
         email: lowerEmail,
         password: password
@@ -177,7 +144,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return { success: false, error: 'Connexion échouée' };
     } else {
-      // 3. Local storage mock lookup fallback (Offline mode)
+      // 2. Local storage mock lookup fallback (Offline mode)
+      
+      // Static mock login overrides for rapid testing/admin demo
+      if (lowerEmail === 'admin@eurekabeauty.com' && password === 'admin123') {
+        const adminUser: Customer = {
+          id: 'cust-admin-001',
+          first_name: 'Directrice',
+          last_name: 'Eureka',
+          email: lowerEmail,
+          phone: '+225 07070707',
+          whatsapp: '+225 07070707',
+          loyalty_points: 9999,
+          role: 'admin',
+        };
+        setUser(adminUser);
+        localStorage.setItem('eb_session', JSON.stringify(adminUser));
+        return { success: true, isAdmin: true };
+      }
+
+      if (lowerEmail === 'customer@eurekabeauty.com' && password === 'customer123') {
+        const customerUser: Customer = {
+          id: 'cust-customer-001',
+          first_name: 'Fatou',
+          last_name: 'Diallo',
+          email: lowerEmail,
+          phone: '+221 77 123 45 67',
+          whatsapp: '+221 77 123 45 67',
+          loyalty_points: 150,
+          role: 'customer',
+        };
+        setUser(customerUser);
+        localStorage.setItem('eb_session', JSON.stringify(customerUser));
+        return { success: true, isAdmin: false };
+      }
+
       return new Promise((resolve) => {
         setTimeout(() => {
           const registeredUsers = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
