@@ -45,6 +45,20 @@ export default function ProductDetailClient() {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
+  const sanitizeProductData = (p: Product): Product => {
+    const sanitizedImages = Array.isArray(p.images) 
+      ? p.images 
+      : (p.images ? [p.images] : ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600']);
+    return {
+      ...p,
+      images: sanitizedImages,
+      discount_percent: Number(p.discount_percent || 0),
+      price_xof: Number(p.price_xof || 0),
+      stock: Number(p.stock || 0),
+      rating: Number(p.rating || 5),
+    };
+  };
+
   const loadProductDetail = () => {
     const foundProduct = db.getProductBySlug(slug);
     if (!foundProduct) {
@@ -52,21 +66,22 @@ export default function ProductDetailClient() {
       return;
     }
 
-    setProduct(foundProduct);
-    setActiveImage((prev) => prev || foundProduct.images[0] || '');
+    const sanitized = sanitizeProductData(foundProduct);
+    setProduct(sanitized);
+    setActiveImage((prev) => prev || sanitized.images[0] || '');
     
     // Fetch product reviews
     const prodReviews = db.getReviews(foundProduct.id);
     setReviews(prodReviews);
 
     // Fetch related products (same category)
-    const related = db.getProducts().filter(
+    const related = db.getProducts().map(sanitizeProductData).filter(
       (p) => p.category_id === foundProduct.category_id && p.id !== foundProduct.id
     );
     setRelatedProducts(related.slice(0, 4));
 
     // Seed bundle recommendations (e.g. 2 other items)
-    const bundleItems = db.getProducts().filter((p) => p.id !== foundProduct.id);
+    const bundleItems = db.getProducts().map(sanitizeProductData).filter((p) => p.id !== foundProduct.id);
     setBundleProducts(bundleItems.slice(0, 2));
   };
 
@@ -110,11 +125,20 @@ export default function ProductDetailClient() {
     alert('Lot complet ajouté au panier avec 10% de réduction !');
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewerName || !reviewComment) return;
+    if (!reviewerName.trim() || !reviewComment.trim()) return;
 
-    db.addReview(product.id, reviewerName, reviewRating, reviewComment);
+    const newReview = {
+      product_id: product.id,
+      customer_name: reviewerName,
+      rating: reviewRating,
+      comment: reviewComment,
+      is_verified_buyer: true,
+      helpful_votes: 0,
+    };
+
+    const added = db.addReview(product.id, reviewerName, reviewRating, reviewComment);
     
     // Refresh reviews
     const updatedReviews = db.getReviews(product.id);
@@ -122,7 +146,9 @@ export default function ProductDetailClient() {
 
     // Refresh product (rating/review_count updates)
     const refreshedProd = db.getProductById(product.id);
-    if (refreshedProd) setProduct(refreshedProd);
+    if (refreshedProd) {
+      setProduct(sanitizeProductData(refreshedProd));
+    }
 
     setReviewSubmitted(true);
     setReviewerName('');

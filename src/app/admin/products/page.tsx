@@ -16,9 +16,12 @@ export default function AdminProductsPage() {
   // Status feedback
   const [feedback, setFeedback] = useState({ text: '', type: '' });
 
-  // Load all baseline data
   const loadData = () => {
-    setProducts(db.getProducts());
+    const prods = db.getProducts().map(p => ({
+      ...p,
+      images: Array.isArray(p.images) ? p.images : (p.images ? [p.images] : ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600'])
+    }));
+    setProducts(prods);
     setCategories(db.getCategories());
   };
 
