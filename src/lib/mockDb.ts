@@ -510,6 +510,23 @@ class MockDB {
 
   constructor() {
     if (typeof window !== 'undefined') {
+      // Clear out outdated mock data from browser localStorage if it contains old text-based IDs (prod-)
+      const oldProducts = localStorage.getItem('eb_products');
+      if (oldProducts && oldProducts.includes('"id":"prod-')) {
+        localStorage.removeItem('eb_categories');
+        localStorage.removeItem('eb_brands');
+        localStorage.removeItem('eb_products');
+        localStorage.removeItem('eb_reviews');
+        localStorage.removeItem('eb_delivery_zones');
+        localStorage.removeItem('eb_coupons');
+        localStorage.removeItem('eb_testimonials');
+        localStorage.removeItem('eb_blog_posts');
+        localStorage.removeItem('eb_orders');
+        localStorage.removeItem('eb_subscribers');
+        localStorage.removeItem('eb_wishlist');
+        localStorage.removeItem('eb_shipping_countries');
+      }
+
       if (!localStorage.getItem('eb_categories')) this.set('eb_categories', seedCategories);
       if (!localStorage.getItem('eb_brands')) this.set('eb_brands', seedBrands);
       if (!localStorage.getItem('eb_products')) this.set('eb_products', seedProducts);
