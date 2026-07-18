@@ -75,6 +75,10 @@ export default function ProductDetailClient() {
     // Reset counts
     setQuantity(1);
     setReviewSubmitted(false);
+    // Scroll window back to top when switching to a different product
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
   }, [slug]);
 
   useEffect(() => {
