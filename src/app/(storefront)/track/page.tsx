@@ -154,8 +154,13 @@ function OrderTracking() {
 
           {/* Cancelled State override */}
           {order.order_status === 'Cancelled' && (
-            <div className="bg-error/10 border border-error/20 p-4 rounded-xl text-center text-xs text-error font-bold flex items-center justify-center gap-2">
-              <AlertCircle size={16} /> {t('orderCancelledMsg')}
+            <div className="bg-error/10 border border-error/20 p-6 rounded-xl text-center text-xs text-error space-y-2 animate-in fade-in duration-300">
+              <div className="font-bold flex items-center justify-center gap-2">
+                <AlertCircle size={16} /> {t('orderCancelledMsg')}
+              </div>
+              <p className="text-dark-muted font-light leading-relaxed">
+                {language === 'EN' ? 'Cancellation Reason:' : "Motif d'annulation :"} <strong className="text-dark">{order.cancel_reason || (language === 'EN' ? 'No reason specified' : 'Aucun motif spécifié')}</strong>
+              </p>
             </div>
           )}
 

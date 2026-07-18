@@ -100,8 +100,14 @@ function CustomerDashboard() {
   }, [user]);
 
   const handleDeliveryStatusChange = (orderId: string, status: Order['order_status']) => {
+    let cancelReason = undefined;
+    if (status === 'Cancelled') {
+      const reason = window.prompt("Veuillez indiquer le motif d'annulation de cette livraison :");
+      if (reason === null) return; // user cancelled prompt
+      cancelReason = reason.trim() || "Aucun motif spécifié";
+    }
     const payStatus = status === 'Delivered' ? 'Paid' : undefined;
-    db.updateOrderStatus(orderId, status, payStatus);
+    db.updateOrderStatus(orderId, status, payStatus, cancelReason);
     setAllOrders(db.getOrders());
   };
 
@@ -548,6 +554,12 @@ function CustomerDashboard() {
                         </button>
                       </div>
 
+                      {ord.order_status === 'Cancelled' && (
+                        <div className="mt-3 bg-error/5 border border-error/10 p-2.5 rounded-lg text-error text-[10px] leading-relaxed">
+                          <strong>Motif d'annulation :</strong> {ord.cancel_reason || "Aucun motif spécifié."}
+                        </div>
+                      )}
+
                     </div>
                   ))}
                 </div>
@@ -785,6 +797,12 @@ function CustomerDashboard() {
                           </select>
                         </div>
                       </div>
+
+                      {ord.order_status === 'Cancelled' && (
+                        <div className="mt-3 bg-error/5 border border-error/10 p-2.5 rounded-lg text-error">
+                          <strong>Motif d'annulation :</strong> {ord.cancel_reason || "Aucun motif spécifié."}
+                        </div>
+                      )}
 
                     </div>
                   ))

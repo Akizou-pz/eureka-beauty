@@ -28,9 +28,16 @@ export default function AdminOrdersPage() {
   }, []);
 
   const handleStatusChange = (id: string, status: Order['order_status']) => {
+    let cancelReason = undefined;
+    if (status === 'Cancelled') {
+      const reason = window.prompt("Veuillez indiquer le motif d'annulation de cette commande :");
+      if (reason === null) return; // user cancelled prompt
+      cancelReason = reason.trim() || "Aucun motif spécifié";
+    }
+
     // If order becomes delivered, auto mark payment paid
     const payStatus = status === 'Delivered' ? 'Paid' : undefined;
-    const updated = db.updateOrderStatus(id, status, payStatus);
+    const updated = db.updateOrderStatus(id, status, payStatus, cancelReason);
     loadOrders();
     // Update selected details display
     if (selectedOrder?.id === id) {
@@ -318,6 +325,17 @@ export default function AdminOrdersPage() {
                   </select>
                 </div>
               </div>
+
+              {selectedOrder.order_status === 'Cancelled' && (
+                <div className="bg-error/15 border border-error/20 p-3.5 rounded-xl text-xs space-y-1 text-error animate-in fade-in duration-300">
+                  <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                    <AlertTriangle size={12} /> Commande Annulée
+                  </div>
+                  <p className="font-light text-[11px] leading-relaxed">
+                    <strong>Motif :</strong> {selectedOrder.cancel_reason || "Aucun motif spécifié."}
+                  </p>
+                </div>
+              )}
 
               {/* Customer Contact */}
               <div className="space-y-2 text-xs">

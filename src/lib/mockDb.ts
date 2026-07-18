@@ -121,6 +121,7 @@ export interface Order {
   created_at: string;
   updated_at?: string;
   items: OrderItem[];
+  cancel_reason?: string;
 }
 
 export interface Review {
@@ -952,7 +953,7 @@ class MockDB {
     return newOrder;
   }
 
-  updateOrderStatus(id: string, status: Order['order_status'], paymentStatus?: Order['payment_status']): Order {
+  updateOrderStatus(id: string, status: Order['order_status'], paymentStatus?: Order['payment_status'], cancelReason?: string): Order {
     const orders = this.getOrders();
     const idx = orders.findIndex((o) => o.id === id);
     if (idx === -1) throw new Error('Order not found');
@@ -962,12 +963,23 @@ class MockDB {
       orders[idx].payment_status = paymentStatus;
     }
     
+    if (status === 'Cancelled') {
+      orders[idx].payment_status = 'Cancelled';
+      if (cancelReason) {
+        orders[idx].cancel_reason = cancelReason;
+      }
+    }
+    
     orders[idx].updated_at = new Date().toISOString();
     this.set('eb_orders', orders);
 
     if (HAS_SUPABASE_CREDS) {
       const updates: any = { order_status: status };
       if (paymentStatus) updates.payment_status = paymentStatus;
+      if (status === 'Cancelled') {
+        updates.payment_status = 'Cancelled';
+        if (cancelReason) updates.cancel_reason = cancelReason;
+      }
       supabase.from('orders').update(updates).eq('id', id).then(({ error }) => {
         if (error) console.error('Supabase order update status error:', error);
       });
