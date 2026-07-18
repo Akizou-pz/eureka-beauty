@@ -231,7 +231,7 @@ export default function HomePage() {
           {bestSellers.map((prod) => (
             <div key={prod.id} className="group bg-white rounded-xl overflow-hidden luxury-shadow-sm hover:luxury-shadow border border-gold/5 flex flex-col justify-between transition-all duration-300">
 
-              <Link href={`/product/${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
+              <Link href={`/product/?slug=${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
                 {prod.discount_percent > 0 && (
                   <span className="absolute top-3 left-3 bg-accent text-white text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded z-10 shadow-sm">
                     -{prod.discount_percent}% OFF
@@ -249,7 +249,7 @@ export default function HomePage() {
                   <p className="text-[9px] uppercase tracking-widest text-gold font-bold">
                     {db.getBrands().find(b => b.id === prod.brand_id)?.name || 'EUREKA BEAUTY'}
                   </p>
-                  <Link href={`/product/${prod.slug}`}>
+                  <Link href={`/product/?slug=${prod.slug}`}>
                     <h3 className="font-serif-display text-sm font-semibold text-dark hover:text-gold transition truncate mt-0.5">{prod.name}</h3>
                   </Link>
                   <div className="flex items-center gap-1 mt-1 text-gold">

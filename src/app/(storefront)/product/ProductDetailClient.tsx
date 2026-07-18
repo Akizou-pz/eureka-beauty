@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
@@ -19,14 +19,10 @@ import {
   MessageCircle
 } from 'lucide-react';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default function ProductDetailClient({ params }: PageProps) {
+export default function ProductDetailClient() {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const { slug } = resolvedParams;
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('slug') || '';
 
   const { formatPrice, t } = useLangCurr();
   const { addToCart } = useCart();
@@ -542,7 +538,7 @@ export default function ProductDetailClient({ params }: PageProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {relatedProducts.map((prod) => (
               <div key={prod.id} className="group bg-white rounded-xl overflow-hidden luxury-shadow-sm hover:luxury-shadow border border-gold/5 flex flex-col justify-between transition-all duration-300">
-                <Link href={`/product/${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
+                <Link href={`/product/?slug=${prod.slug}`} className="relative block overflow-hidden aspect-square bg-bg-cream">
                   <img src={prod.images[0]} alt={prod.name} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" />
                 </Link>
                 <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
