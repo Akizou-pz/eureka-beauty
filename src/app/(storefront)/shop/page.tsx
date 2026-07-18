@@ -11,7 +11,7 @@ import { Filter, X, Star, ChevronDown, SlidersHorizontal } from 'lucide-react';
 function Shop() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { formatPrice } = useLangCurr();
+  const { formatPrice, t } = useLangCurr();
   const { addToCart } = useCart();
 
   // Search parameters from URL
@@ -159,10 +159,10 @@ function Shop() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gold/10 pb-6">
         <div>
           <h1 className="font-serif-display text-3xl font-medium tracking-wide text-dark">
-            La Boutique Eureka
+            {t('laBoutique')}
           </h1>
           <p className="text-xs text-dark-muted mt-1 font-light">
-            {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+            {t('productsFoundCount', { count: filteredProducts.length })}
           </p>
         </div>
 
@@ -173,21 +173,21 @@ function Shop() {
             onClick={() => setShowMobileFilters(true)}
             className="md:hidden flex-1 flex items-center justify-center gap-2 border border-gold/15 bg-white text-xs font-semibold uppercase tracking-wider py-3 rounded-lg text-dark"
           >
-            <Filter size={14} /> Filtrer
+            <Filter size={14} /> {t('filter')}
           </button>
 
           {/* Sort Selector */}
           <div className="flex-1 md:flex-initial relative flex items-center bg-white border border-gold/15 rounded-lg overflow-hidden px-3 py-2 text-xs">
-            <span className="text-dark-muted mr-1.5 uppercase font-bold tracking-wider">Trier:</span>
+            <span className="text-dark-muted mr-1.5 uppercase font-bold tracking-wider">{t('sortBy')}</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="bg-transparent text-dark font-semibold outline-none border-none cursor-pointer"
             >
-              <option value="popularity">Popularité</option>
-              <option value="price-low">Prix : croissant</option>
-              <option value="price-high">Prix : décroissant</option>
-              <option value="rating">Mieux notés</option>
+              <option value="popularity">{t('sortByPopularity')}</option>
+              <option value="price-low">{t('sortByPriceLow')}</option>
+              <option value="price-high">{t('sortByPriceHigh')}</option>
+              <option value="rating">{t('sortByRating')}</option>
             </select>
           </div>
         </div>
@@ -202,22 +202,22 @@ function Shop() {
           
           <div className="flex justify-between items-center border-b border-gold/10 pb-3">
             <h3 className="font-serif-display font-semibold text-sm tracking-wider text-dark uppercase flex items-center gap-1.5">
-              <SlidersHorizontal size={14} className="text-gold" /> Filtres
+              <SlidersHorizontal size={14} className="text-gold" /> {t('filter')}
             </h3>
             <button onClick={resetFilters} className="text-[10px] text-error font-bold uppercase hover:underline">
-              Effacer
+              {t('clear')}
             </button>
           </div>
 
           {/* Categories */}
           <div className="space-y-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Catégories</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('ingredients')}</h4>
             <div className="space-y-1.5">
               <button
                 onClick={() => setSelectedCategory('')}
                 className={`w-full text-left text-xs py-1 px-2 rounded transition font-medium ${!selectedCategory ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
               >
-                Toutes les catégories
+                {t('allCategories')}
               </button>
               {categories.map((cat) => (
                 <button
@@ -233,13 +233,13 @@ function Shop() {
 
           {/* Brands */}
           <div className="space-y-2 border-t border-gold/5 pt-4">
-            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Marques</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('brands')}</h4>
             <div className="space-y-1.5">
               <button
                 onClick={() => setSelectedBrand('')}
                 className={`w-full text-left text-xs py-1 px-2 rounded transition font-medium ${!selectedBrand ? 'bg-gold/10 text-gold font-bold' : 'text-dark hover:bg-bg-cream'}`}
               >
-                Toutes les marques
+                {t('allBrands')}
               </button>
               {brands.map((br) => (
                 <button
@@ -255,40 +255,40 @@ function Shop() {
 
           {/* Skin Type */}
           <div className="space-y-2 border-t border-gold/5 pt-4">
-            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Type de Peau</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('skinType')}</h4>
             <select
               value={selectedSkinType}
               onChange={(e) => setSelectedSkinType(e.target.value)}
               className="w-full text-xs bg-bg-cream border border-gold/15 rounded-lg px-2 py-2 text-dark font-medium"
             >
-              <option value="All">Tous les types de peau</option>
-              <option value="Oily">Grasse (Oily)</option>
-              <option value="Dry">Sèche (Dry)</option>
-              <option value="Sensitive">Sensible (Sensitive)</option>
-              <option value="Combination">Mixte (Combination)</option>
+              <option value="All">{t('allSkinTypes')}</option>
+              <option value="Oily">{t('skinTypeOily')}</option>
+              <option value="Dry">{t('skinTypeDry')}</option>
+              <option value="Sensitive">{t('skinTypeSensitive')}</option>
+              <option value="Combination">{t('skinTypeCombination')}</option>
             </select>
           </div>
 
           {/* Skin Concern */}
           <div className="space-y-2 border-t border-gold/5 pt-4">
-            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Préoccupation</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('skinConcern')}</h4>
             <select
               value={selectedConcern}
               onChange={(e) => setSelectedConcern(e.target.value)}
               className="w-full text-xs bg-bg-cream border border-gold/15 rounded-lg px-2 py-2 text-dark font-medium"
             >
-              <option value="All">Toutes les préoccupations</option>
-              <option value="Hydration">Hydratation</option>
-              <option value="Anti-Aging">Anti-Âge</option>
-              <option value="Acne">Acné & Pores</option>
-              <option value="Brightening">Teint Terne & Taches</option>
+              <option value="All">{t('allConcerns')}</option>
+              <option value="Hydration">{t('concernHydration')}</option>
+              <option value="Anti-Aging">{t('concernAntiAging')}</option>
+              <option value="Acne">{t('concernAcne')}</option>
+              <option value="Brightening">{t('concernBrightening')}</option>
             </select>
           </div>
 
           {/* Price Range */}
           <div className="space-y-2 border-t border-gold/5 pt-4">
             <div className="flex justify-between text-[10px] uppercase tracking-widest text-gold font-bold">
-              <span>Prix Maximum</span>
+              <span>{t('maxPrice')}</span>
               <span className="text-dark font-bold">{formatPrice(maxPrice)}</span>
             </div>
             <input
@@ -304,7 +304,7 @@ function Shop() {
 
           {/* Rating */}
           <div className="space-y-2 border-t border-gold/5 pt-4">
-            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Note Minimale</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('minRating')}</h4>
             <div className="flex gap-2">
               {[1, 2, 3, 4].map((ratingVal) => (
                 <button
@@ -330,15 +330,15 @@ function Shop() {
               <div className="w-12 h-12 rounded-full bg-bg-cream flex items-center justify-center text-gold mx-auto border border-gold/10">
                 <SlidersHorizontal size={20} />
               </div>
-              <h3 className="font-serif-display text-lg font-semibold text-dark">Aucun produit ne correspond</h3>
+              <h3 className="font-serif-display text-lg font-semibold text-dark">{t('noMatchingProducts')}</h3>
               <p className="text-xs text-dark-muted max-w-xs mx-auto leading-relaxed">
-                Essayez d\'ajuster vos filtres de recherche ou de réinitialiser la sélection pour afficher tout notre catalogue.
+                {t('adjustFiltersDesc')}
               </p>
               <button
                 onClick={resetFilters}
                 className="bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest px-6 py-3 rounded-lg transition"
               >
-                Réinitialiser les filtres
+                {t('resetFilters')}
               </button>
             </div>
           ) : (
@@ -395,12 +395,12 @@ function Shop() {
                       <button
                         onClick={() => {
                           addToCart(prod, 1);
-                          alert(`${prod.name} ajouté au panier !`);
+                          alert(t('singleAddedAlert', { name: prod.name }));
                         }}
                         disabled={prod.stock <= 0}
                         className="bg-dark hover:bg-gold text-white text-[9px] font-bold uppercase tracking-wider px-3 py-2 rounded-md transition"
                       >
-                        {prod.stock > 0 ? 'Ajouter' : 'Rupture'}
+                        {prod.stock > 0 ? t('addToCart') : t('outOfStock')}
                       </button>
                     </div>
                   </div>
@@ -423,7 +423,7 @@ function Shop() {
           <div className="relative w-80 bg-white h-full overflow-y-auto p-6 space-y-6 flex flex-col justify-between z-10 animate-in slide-in-from-right duration-250">
             <div>
               <div className="flex justify-between items-center border-b border-gold/10 pb-3 mb-6">
-                <h3 className="font-serif-display font-semibold text-sm tracking-wider text-dark uppercase">Filtres</h3>
+                <h3 className="font-serif-display font-semibold text-sm tracking-wider text-dark uppercase">{t('filter')}</h3>
                 <button onClick={() => setShowMobileFilters(false)} className="text-dark hover:text-gold transition">
                   <X size={18} />
                 </button>
@@ -431,13 +431,13 @@ function Shop() {
 
               {/* Categories mobile */}
               <div className="space-y-2">
-                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Catégories</h4>
+                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('ingredients')}</h4>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedCategory('')}
                     className={`text-xs px-3 py-1.5 rounded-full border transition ${!selectedCategory ? 'bg-gold text-white border-gold font-bold' : 'bg-bg-cream text-dark border-transparent'}`}
                   >
-                    Toutes
+                    {t('all')}
                   </button>
                   {categories.map((cat) => (
                     <button
@@ -453,13 +453,13 @@ function Shop() {
 
               {/* Brands mobile */}
               <div className="space-y-2 border-t border-gold/5 pt-4 mt-4">
-                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Marques</h4>
+                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('brands')}</h4>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedBrand('')}
                     className={`text-xs px-3 py-1.5 rounded-full border transition ${!selectedBrand ? 'bg-gold text-white border-gold font-bold' : 'bg-bg-cream text-dark border-transparent'}`}
                   >
-                    Toutes
+                    {t('all')}
                   </button>
                   {brands.map((br) => (
                     <button
@@ -475,33 +475,33 @@ function Shop() {
 
               {/* Skin Type mobile */}
               <div className="space-y-2 border-t border-gold/5 pt-4 mt-4">
-                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Type de Peau</h4>
+                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('skinType')}</h4>
                 <select
                   value={selectedSkinType}
                   onChange={(e) => setSelectedSkinType(e.target.value)}
                   className="w-full text-xs bg-bg-cream border border-gold/15 rounded-lg px-2 py-2 text-dark font-medium"
                 >
-                  <option value="All">Tous les types de peau</option>
-                  <option value="Oily">Grasse (Oily)</option>
-                  <option value="Dry">Sèche (Dry)</option>
-                  <option value="Sensitive">Sensible (Sensitive)</option>
-                  <option value="Combination">Mixte (Combination)</option>
+                  <option value="All">{t('allSkinTypes')}</option>
+                  <option value="Oily">{t('skinTypeOily')}</option>
+                  <option value="Dry">{t('skinTypeDry')}</option>
+                  <option value="Sensitive">{t('skinTypeSensitive')}</option>
+                  <option value="Combination">{t('skinTypeCombination')}</option>
                 </select>
               </div>
 
               {/* Skin Concern mobile */}
               <div className="space-y-2 border-t border-gold/5 pt-4 mt-4">
-                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">Préoccupation</h4>
+                <h4 className="text-[10px] uppercase tracking-widest text-gold font-bold">{t('skinConcern')}</h4>
                 <select
                   value={selectedConcern}
                   onChange={(e) => setSelectedConcern(e.target.value)}
                   className="w-full text-xs bg-bg-cream border border-gold/15 rounded-lg px-2 py-2 text-dark font-medium"
                 >
-                  <option value="All">Toutes les préoccupations</option>
-                  <option value="Hydration">Hydratation</option>
-                  <option value="Anti-Aging">Anti-Âge</option>
-                  <option value="Acne">Acné & Pores</option>
-                  <option value="Brightening">Teint Terne & Taches</option>
+                  <option value="All">{t('allConcerns')}</option>
+                  <option value="Hydration">{t('concernHydration')}</option>
+                  <option value="Anti-Aging">{t('concernAntiAging')}</option>
+                  <option value="Acne">{t('concernAcne')}</option>
+                  <option value="Brightening">{t('concernBrightening')}</option>
                 </select>
               </div>
             </div>
@@ -511,13 +511,13 @@ function Shop() {
                 onClick={resetFilters}
                 className="flex-1 border border-gold/15 bg-white text-xs font-semibold uppercase tracking-wider py-3 rounded-lg text-dark"
               >
-                Effacer
+                {t('clear')}
               </button>
               <button
                 onClick={() => setShowMobileFilters(false)}
                 className="flex-1 bg-gold text-white text-xs font-semibold uppercase tracking-wider py-3 rounded-lg shadow-sm"
               >
-                Appliquer
+                {t('apply')}
               </button>
             </div>
           </div>

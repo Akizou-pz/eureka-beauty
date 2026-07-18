@@ -19,7 +19,7 @@ import {
 
 function OrderTracking() {
   const searchParams = useSearchParams();
-  const { formatPrice } = useLangCurr();
+  const { formatPrice, t, language } = useLangCurr();
 
   const [orderNumber, setOrderNumber] = useState(searchParams.get('num') || '');
   const [phone, setPhone] = useState(searchParams.get('phone') || '');
@@ -33,7 +33,7 @@ function OrderTracking() {
     setSearched(true);
 
     if (!orderNumber || !phone) {
-      setErrorMsg('Veuillez renseigner le numéro de commande et votre numéro de téléphone.');
+      setErrorMsg(t('missingTrackFields'));
       setOrder(null);
       return;
     }
@@ -43,17 +43,17 @@ function OrderTracking() {
       setOrder(found);
     } else {
       setOrder(null);
-      setErrorMsg('Aucune commande correspondante trouvée. Veuillez vérifier les informations saisies.');
+      setErrorMsg(t('noOrderFound'));
     }
   };
 
   // Status mapping to helper steps
   const statusSteps = [
-    { key: 'Confirmed', label: 'Commande Confirmée', desc: 'Votre commande a bien été reçue par notre équipe.', icon: CheckCircle },
-    { key: 'Packed', label: 'Préparation et Emballage', desc: 'Vos produits sont soigneusement emballés dans nos coffrets de luxe.', icon: Package },
-    { key: 'Shipped', label: 'Expédiée', desc: 'Le colis a été remis à notre transporteur partenaire.', icon: Truck },
-    { key: 'Out for Delivery', label: 'En cours de livraison', desc: 'Le livreur est en route vers votre domicile.', icon: Clock },
-    { key: 'Delivered', label: 'Livrée avec Succès', desc: 'Le colis vous a été remis en mains propres.', icon: CheckCircle },
+    { key: 'Confirmed', label: t('statusConfirmed'), desc: t('statusConfirmedDesc'), icon: CheckCircle },
+    { key: 'Packed', label: t('statusPacked'), desc: t('statusPackedDesc'), icon: Package },
+    { key: 'Shipped', label: t('statusShipped'), desc: t('statusShippedDesc'), icon: Truck },
+    { key: 'Out for Delivery', label: t('statusOutForDelivery'), desc: t('statusOutForDeliveryDesc'), icon: Clock },
+    { key: 'Delivered', label: t('statusDelivered'), desc: t('statusDeliveredDesc'), icon: CheckCircle },
   ];
 
   // Helper to check if step is active based on order status index
@@ -76,14 +76,13 @@ function OrderTracking() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      
       {/* Page Title */}
       <div className="text-center max-w-md mx-auto space-y-2">
-        <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">Logistique & Suivi</span>
-        <h1 className="font-serif-display text-3xl font-medium tracking-wider text-dark">Suivi de Commande</h1>
+        <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">{t('trackingTitle')}</span>
+        <h1 className="font-serif-display text-3xl font-medium tracking-wider text-dark">{t('trackingHeader')}</h1>
         <div className="w-12 h-0.5 bg-gold mx-auto mt-2" />
         <p className="text-xs text-dark-muted font-light leading-relaxed">
-          Suivez l\'état de votre livraison Eureka Beauty en temps réel en saisissant vos identifiants ci-dessous.
+          {t('trackingDesc')}
         </p>
       </div>
 
@@ -92,7 +91,7 @@ function OrderTracking() {
         <form onSubmit={handleTrack} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">Numéro de Commande</label>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">{t('orderNumberLabel')}</label>
               <input
                 type="text"
                 required
@@ -103,7 +102,7 @@ function OrderTracking() {
               />
             </div>
             <div>
-              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">Téléphone de livraison</label>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">{t('phone')}</label>
               <input
                 type="tel"
                 required
@@ -119,7 +118,7 @@ function OrderTracking() {
             type="submit"
             className="w-full bg-dark hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest py-3 rounded-lg transition shadow flex items-center justify-center gap-2"
           >
-            <Search size={14} /> Suivre le colis
+            <Search size={14} /> {t('trackBtn')}
           </button>
         </form>
 
@@ -137,18 +136,18 @@ function OrderTracking() {
           {/* Header summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gold/10 text-xs">
             <div className="space-y-1">
-              <span className="text-dark-muted">N° de Commande:</span>
+              <span className="text-dark-muted">{t('orderNumberLabel')}:</span>
               <p className="font-bold text-dark text-sm">{order.order_number}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-dark-muted">Date d'achat:</span>
-              <p className="font-bold text-dark text-sm">{new Date(order.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
+              <span className="text-dark-muted">{t('purchaseDate')}:</span>
+              <p className="font-bold text-dark text-sm">{new Date(order.created_at).toLocaleDateString(language === 'EN' ? 'en-US' : 'fr-FR', { dateStyle: 'long' })}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-dark-muted">Livraison Estimée:</span>
+              <span className="text-dark-muted">{t('estimatedDelivery')}:</span>
               <p className="font-bold text-gold text-sm flex items-center gap-1">
                 <Calendar size={14} />
-                {new Date(order.estimated_delivery).toLocaleDateString('fr-FR', { dateStyle: 'long' })}
+                {new Date(order.estimated_delivery).toLocaleDateString(language === 'EN' ? 'en-US' : 'fr-FR', { dateStyle: 'long' })}
               </p>
             </div>
           </div>
@@ -156,7 +155,7 @@ function OrderTracking() {
           {/* Cancelled State override */}
           {order.order_status === 'Cancelled' && (
             <div className="bg-error/10 border border-error/20 p-4 rounded-xl text-center text-xs text-error font-bold flex items-center justify-center gap-2">
-              <AlertCircle size={16} /> Commande Annulée (Veuillez contacter le service client par WhatsApp pour plus de détails).
+              <AlertCircle size={16} /> {t('orderCancelledMsg')}
             </div>
           )}
 
@@ -199,7 +198,7 @@ function OrderTracking() {
 
           {/* Details list */}
           <div className="pt-6 border-t border-gold/10 space-y-4">
-            <h3 className="font-serif-display font-semibold text-sm text-dark uppercase tracking-wider">Articles Commandés</h3>
+            <h3 className="font-serif-display font-semibold text-sm text-dark uppercase tracking-wider">{t('orderedItems')}</h3>
             <div className="space-y-3 text-xs">
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center bg-bg-cream/40 p-3 rounded-lg border border-gold/5">
@@ -213,7 +212,7 @@ function OrderTracking() {
           {/* Assistance CTA */}
           <div className="bg-bg-cream/40 p-4 rounded-xl border border-gold/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
             <p className="text-dark-muted text-center sm:text-left">
-              Une question concernant l'expédition de votre colis ? Contactez notre logistique.
+              {t('shippingQuestion')}
             </p>
             <a
               href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20je%20souhaite%20des%20informations%20sur%20la%20livraison%20de%20ma%20commande%20%23${order.order_number}`}
@@ -221,7 +220,7 @@ function OrderTracking() {
               rel="noopener noreferrer"
               className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold uppercase tracking-widest px-4 py-2.5 rounded-lg flex items-center gap-2 transition flex-shrink-0"
             >
-              <MessageSquare size={14} /> WhatsApp Assistance
+              <MessageSquare size={14} /> {t('whatsappAssistance')}
             </a>
           </div>
 
@@ -231,7 +230,7 @@ function OrderTracking() {
       {/* Searched but empty placeholder */}
       {searched && !order && !errorMsg && (
         <div className="text-center py-10 bg-white border border-gold/10 rounded-xl space-y-2">
-          <p className="text-xs text-dark-muted">Recherche en cours...</p>
+          <p className="text-xs text-dark-muted">{t('searching')}</p>
         </div>
       )}
 

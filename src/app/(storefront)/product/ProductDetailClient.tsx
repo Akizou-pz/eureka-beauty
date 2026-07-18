@@ -241,7 +241,7 @@ export default function ProductDetailClient() {
                   <div className="w-8 h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
                     <Play size={16} fill="currentColor" />
                   </div>
-                  <span className="text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">Vidéo</span>
+                  <span className="text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">{t('video')}</span>
                 </button>
               )}
             </div>
@@ -271,7 +271,7 @@ export default function ProductDetailClient() {
                 ))}
               </div>
               <span className="text-xs font-bold text-dark">{product.rating}</span>
-              <span className="text-xs text-dark-muted font-light">({reviews.length} avis)</span>
+              <span className="text-xs text-dark-muted font-light">{t('reviewsCount', { count: reviews.length })}</span>
             </div>
           </div>
 
@@ -298,7 +298,7 @@ export default function ProductDetailClient() {
             <div>
               {isOutOfStock ? (
                 <span className="flex items-center gap-1 text-xs text-error font-bold bg-error/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                  <AlertTriangle size={12} /> Rupture
+                  <AlertTriangle size={12} /> {t('outOfStock')}
                 </span>
               ) : isLowStock ? (
                 <span className="flex items-center gap-1 text-xs text-accent font-bold bg-accent/10 px-3 py-1 rounded-full uppercase tracking-wider">
@@ -315,11 +315,11 @@ export default function ProductDetailClient() {
           {/* Skin metadata */}
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
-              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">Type de peau</span>
-              <span className="font-semibold text-dark mt-0.5 block">{product.skin_type === 'All' ? 'Tous les types' : product.skin_type}</span>
+              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinTypeLabel')}</span>
+              <span className="font-semibold text-dark mt-0.5 block">{product.skin_type === 'All' ? t('allSkinTypesLabel') : product.skin_type}</span>
             </div>
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
-              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">Préoccupation</span>
+              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinConcernLabel')}</span>
               <span className="font-semibold text-dark mt-0.5 block">{product.skin_concern}</span>
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function ProductDetailClient() {
                 <button
                   onClick={() => {
                     addToCart(product, quantity);
-                    alert(`${quantity} article(s) ajouté(s) au panier !`);
+                    alert(t('itemAddedAlert', { quantity }));
                   }}
                   className="flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest py-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
@@ -373,19 +373,19 @@ export default function ProductDetailClient() {
             className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4"
           >
             <MessageCircle size={16} />
-            <span>Acheter par WhatsApp (Livraison Gratuite)</span>
+            <span>{t('buyWhatsApp')}</span>
           </button>
 
           {/* Quick trust flags */}
           <div className="grid grid-cols-3 gap-2 pt-6 text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
             <span className="flex flex-col items-center gap-1.5">
-              <ShieldCheck size={14} className="text-gold" /> Authentique
+              <ShieldCheck size={14} className="text-gold" /> {t('guaranteeTitle')}
             </span>
             <span className="flex flex-col items-center gap-1.5">
-              <Truck size={14} className="text-gold" /> COD Gratuit
+              <Truck size={14} className="text-gold" /> {t('freeCod')}
             </span>
             <span className="flex flex-col items-center gap-1.5">
-              <RotateCcw size={14} className="text-gold" /> Retours 7 jours
+              <RotateCcw size={14} className="text-gold" /> {t('returnDays')}
             </span>
           </div>
 
@@ -429,7 +429,7 @@ export default function ProductDetailClient() {
             {/* Bundle Price Details & CTA */}
             <div className="flex-1 text-center lg:text-left space-y-2">
               <p className="text-xs text-dark-muted">
-                Achetez ces trois articles ensemble et bénéficiez d\'une <strong>remise spéciale de 10%</strong> sur le lot complet.
+                {t('bundleOffer')}
               </p>
               <div className="flex justify-center lg:justify-start items-baseline gap-3">
                 <span className="text-lg font-bold text-gold font-serif-display">{formatPrice(bundleDiscountedTotal)}</span>
@@ -441,7 +441,7 @@ export default function ProductDetailClient() {
                 disabled={bundleAdded}
                 className={`text-[10px] font-bold uppercase tracking-widest py-3 px-6 rounded-lg transition ${bundleAdded ? 'bg-success text-white' : 'bg-dark hover:bg-gold text-white shadow'}`}
               >
-                {bundleAdded ? '✓ Lot Ajouté' : t('addBundle')}
+                {bundleAdded ? t('bundleAdded') : t('addBundle')}
               </button>
             </div>
 
@@ -456,7 +456,7 @@ export default function ProductDetailClient() {
         {/* Tabs Bar */}
         <div className="flex overflow-x-auto border-b border-gold/10 no-scrollbar gap-6">
           {[
-            { id: 'details', label: 'Détails du Produit' },
+            { id: 'details', label: t('productDetails') },
             { id: 'ingredients', label: t('ingredients') },
             { id: 'how-to', label: t('howToUse') },
             { id: 'reviews', label: `${t('reviews')} (${reviews.length})` },
@@ -477,36 +477,36 @@ export default function ProductDetailClient() {
           {activeTab === 'details' && (
             <div className="space-y-3 px-1">
               <p>{product.description}</p>
-              <h4 className="font-semibold text-dark mt-4">Bénéfices :</h4>
+              <h4 className="font-semibold text-dark mt-4">{t('benefits')} :</h4>
               <p>{product.benefits || 'Améliore la barrière protectrice cutanée, unifie et lisse le grain de peau.'}</p>
             </div>
           )}
 
           {activeTab === 'ingredients' && (
             <div className="space-y-2 px-1">
-              <p className="font-semibold text-dark">Formule authentique :</p>
-              <p className="italic">{product.ingredients || 'Liste non disponible. Formulée sans parabènes, sulfates ni phtalates.'}</p>
+              <p className="font-semibold text-dark">{t('authenticFormula')}</p>
+              <p className="italic">{product.ingredients || t('ingredientsNotAvailable')}</p>
             </div>
           )}
 
           {activeTab === 'how-to' && (
             <div className="space-y-2 px-1">
-              <p className="font-semibold text-dark">Conseils d\'utilisation beauté :</p>
-              <p>{product.how_to_use || 'Appliquez délicatement matin et soir sur le visage propre en mouvements circulaires.'}</p>
+              <p className="font-semibold text-dark">{t('beautyTips')}</p>
+              <p>{product.how_to_use || t('defaultHowToUse')}</p>
             </div>
           )}
 
           {activeTab === 'delivery' && (
             <div className="space-y-4 px-1">
-              <p>Nous livrons dans toute l\'Afrique de l\'Ouest et du Centre (Côte d\'Ivoire, Sénégal, Cameroun, Bénin, Togo, etc.).</p>
+              <p>{t('shippingCoverage')}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gold/10 p-3 rounded-lg">
                   <h4 className="font-semibold text-dark">Lomé & Togo</h4>
-                  <p className="mt-1 text-[11px]">Livraison express locale en moins de 24 heures (1000 FCFA / Gratuite).</p>
+                  <p className="mt-1 text-[11px]">{t('expressDeliveryInfo')}</p>
                 </div>
                 <div className="border border-gold/10 p-3 rounded-lg">
-                  <h4 className="font-semibold text-dark">Autres Régions & Pays</h4>
-                  <p className="mt-1 text-[11px]">Livraison standard en 2 à 4 jours ouvrés (2500 FCFA - 3500 FCFA).</p>
+                  <h4 className="font-semibold text-dark">{t('otherRegions')}</h4>
+                  <p className="mt-1 text-[11px]">{t('standardDeliveryInfo')}</p>
                 </div>
               </div>
             </div>
@@ -518,11 +518,11 @@ export default function ProductDetailClient() {
               
               {/* Form submit review */}
               <div className="bg-bg-cream/40 p-6 rounded-xl luxury-border space-y-4">
-                <h4 className="font-serif-display font-semibold text-sm text-dark tracking-wider">Laisser un avis sur le produit</h4>
+                <h4 className="font-serif-display font-semibold text-sm text-dark tracking-wider">{t('leaveReview')}</h4>
                 
                 {reviewSubmitted ? (
                   <p className="text-success text-xs font-semibold bg-success/10 px-3 py-2.5 rounded-lg">
-                    ✓ Merci ! Votre avis a été enregistré et publié avec succès.
+                    {t('reviewSubmittedSuccess')}
                   </p>
                 ) : (
                   <form onSubmit={handleReviewSubmit} className="space-y-4">
@@ -575,7 +575,7 @@ export default function ProductDetailClient() {
               {/* Reviews List */}
               <div className="space-y-4">
                 {reviews.length === 0 ? (
-                  <p className="text-center py-4 italic text-dark-muted">Aucun avis rédigé pour le moment.</p>
+                  <p className="text-center py-4 italic text-dark-muted">{t('noReviewsYet')}</p>
                 ) : (
                   reviews.map((rev) => (
                     <div key={rev.id} className="border-b border-gold/5 pb-4">
@@ -618,8 +618,8 @@ export default function ProductDetailClient() {
       {relatedProducts.length > 0 && (
         <section className="space-y-8">
           <div className="text-center space-y-1">
-            <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">Pour compléter votre routine</span>
-            <h2 className="font-serif-display text-2xl font-medium tracking-wider text-dark">Produits Recommandés</h2>
+            <span className="text-[10px] tracking-[0.25em] text-gold uppercase font-bold">{t('toCompleteRoutine')}</span>
+            <h2 className="font-serif-display text-2xl font-medium tracking-wider text-dark">{t('recommendedProducts')}</h2>
             <div className="w-12 h-0.5 bg-gold mx-auto mt-2" />
           </div>
 
@@ -637,11 +637,11 @@ export default function ProductDetailClient() {
                   <button
                     onClick={() => {
                       addToCart(prod, 1);
-                      alert(`${prod.name} ajouté !`);
+                      alert(t('singleAddedAlert', { name: prod.name }));
                     }}
                     className="w-full bg-bg-cream hover:bg-gold text-dark hover:text-white border border-gold/15 text-[9px] font-bold uppercase py-2 rounded transition"
                   >
-                    Ajouter au panier
+                    {t('addToCart')}
                   </button>
                 </div>
               </div>

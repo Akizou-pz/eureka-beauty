@@ -124,12 +124,12 @@ export default function Header() {
     <>
       {/* Top Promotion bar */}
       <div className="bg-dark text-white text-center py-2 px-4 text-xs font-light tracking-widest border-b border-gold/15 flex items-center justify-between md:justify-center gap-4">
-        <span>LIVRAISON GRATUITE CENTRE VILLE | EXPEDITION POSSIBLE PARTOUT A L'INTERIEUR</span>
+        <span>{t('freeShippingPromo')}</span>
         <div className="flex gap-4 text-[10px] hidden md:flex">
-          <Link href="/track" className="hover:text-gold transition">Suivi</Link>
+          <Link href="/track" className="hover:text-gold transition">{t('track')}</Link>
           <span>|</span>
           <a href="https://wa.me/22893866752" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition flex items-center gap-1">
-            WhatsApp Commandes
+            {t('whatsappOrders')}
           </a>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function Header() {
                   {searchResults.length > 0 ? (
                     <div className="space-y-3">
                       <div className="text-[10px] uppercase tracking-widest text-gold font-bold flex items-center gap-1">
-                        <TrendingUp size={12} /> Suggestions
+                        <TrendingUp size={12} /> {t('suggestions')}
                       </div>
                       {searchResults.map((product) => (
                         <Link
@@ -249,10 +249,10 @@ export default function Header() {
                       ))}
                     </div>
                   ) : searchQuery.trim().length >= 2 ? (
-                    <p className="text-xs text-dark-muted py-2 text-center">Aucun produit trouvé</p>
+                    <p className="text-xs text-dark-muted py-2 text-center">{t('noProductFound')}</p>
                   ) : (
                     <div className="text-xs text-dark-muted py-1">
-                      <p className="font-semibold uppercase tracking-wider text-[10px] text-gold mb-1">Recherches Populaires</p>
+                      <p className="font-semibold uppercase tracking-wider text-[10px] text-gold mb-1">{t('popularSearches')}</p>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {['Shea', 'Glow', 'Foundation', 'Baobab', 'Rouge'].map((term) => (
                           <button
@@ -422,7 +422,7 @@ export default function Header() {
                             </div>
                             {item.discount_percent > 0 && (
                               <p className="text-[10px] text-accent mt-0.5 font-bold">
-                                -{item.discount_percent}% remise
+                                {t('discountOff', { percent: item.discount_percent })}
                               </p>
                             )}
                           </div>
@@ -451,7 +451,7 @@ export default function Header() {
                               className="text-dark-muted hover:text-error transition flex items-center gap-1"
                             >
                               <Trash2 size={12} />
-                              <span>Retirer</span>
+                              <span>{t('remove')}</span>
                             </button>
                           </div>
                         </div>
@@ -484,8 +484,8 @@ export default function Header() {
                   )}
                   {appliedCoupon && (
                     <div className="flex justify-between items-center bg-white px-3 py-2 rounded-lg border border-gold/15 text-xs text-gold">
-                      <span>Code appliqué: <strong>{appliedCoupon.code}</strong> (-{appliedCoupon.discount_percent}%)</span>
-                      <button onClick={removeCoupon} className="text-[10px] text-error font-bold uppercase hover:underline">Retirer</button>
+                      <span>{t('promoApplied', { code: appliedCoupon.code, percent: appliedCoupon.discount_percent })}</span>
+                      <button onClick={removeCoupon} className="text-[10px] text-error font-bold uppercase hover:underline">{t('remove')}</button>
                     </div>
                   )}
 
@@ -502,7 +502,7 @@ export default function Header() {
                       </div>
                     )}
                     <div className="flex justify-between border-t border-gold/10 pt-3 text-sm text-dark font-bold">
-                      <span>Total (hors livraison)</span>
+                      <span>{t('totalExclShipping')}</span>
                       <span className="text-gold font-serif-display font-semibold text-base">
                         {formatPrice(getCartSubtotal() - (appliedCoupon ? getCartSubtotal() * (appliedCoupon.discount_percent / 100) : 0))}
                       </span>
@@ -555,7 +555,7 @@ export default function Header() {
             </div>
 
             <div className="p-6 bg-bg-cream border-t border-gold/10 text-xs">
-              <p className="font-semibold text-dark-muted mb-3">LANGUE & DEVISE</p>
+              <p className="font-semibold text-dark-muted mb-3">{t('langCurrency')}</p>
               <div className="grid grid-cols-2 gap-2">
                 <select
                   value={language}
