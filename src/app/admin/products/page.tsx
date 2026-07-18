@@ -266,7 +266,7 @@ export default function AdminProductsPage() {
          ========================================== */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-          <div className="my-4 sm:my-auto bg-[#141414] border border-white/10 w-full max-w-2xl rounded-2xl p-6 sm:p-8 space-y-6 luxury-shadow">
+          <div className="my-4 sm:my-auto bg-[#141414] border border-white/10 w-full max-w-2xl rounded-2xl p-4 sm:p-8 space-y-6 luxury-shadow">
             
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <h3 className="font-serif-display font-semibold text-lg text-white tracking-wider">

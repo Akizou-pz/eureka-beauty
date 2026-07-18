@@ -184,7 +184,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Admin Screen Content */}
-      <main className="flex-grow p-6 sm:p-10 lg:max-h-screen lg:overflow-y-auto no-scrollbar space-y-8">
+      <main className="flex-grow p-4 sm:p-10 lg:max-h-screen lg:overflow-y-auto no-scrollbar space-y-8">
         {children}
       </main>
 
