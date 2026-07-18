@@ -240,7 +240,7 @@ export default function AdminOrdersPage() {
                         <td className="p-4 font-serif-display font-semibold text-gold">{formatPrice(ord.total_xof)}</td>
                         <td className="p-4">
                           <span className={`px-2 py-0.5 rounded-full font-bold text-[8px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
-                            {ord.order_status}
+                            {ord.order_status === 'Delivered' ? 'Livrée' : ord.order_status === 'Cancelled' ? 'Annulée' : ord.order_status === 'Confirmed' ? 'Confirmée' : ord.order_status === 'Packed' ? 'Préparation' : ord.order_status === 'Shipped' ? 'Expédiée' : 'En livraison'}
                           </span>
                         </td>
                         <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>

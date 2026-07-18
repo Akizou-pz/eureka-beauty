@@ -197,8 +197,8 @@ export default function AdminOverviewPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-serif-display font-semibold text-gold">{formatPrice(ord.total_xof)}</p>
-                    <span className="text-[8px] bg-white/10 px-2 py-0.5 rounded-full font-bold uppercase mt-1 inline-block">
-                      {ord.order_status}
+                    <span className={`text-[8px] px-2 py-0.5 rounded-full font-bold uppercase mt-1 inline-block ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
+                      {ord.order_status === 'Delivered' ? 'Livrée' : ord.order_status === 'Cancelled' ? 'Annulée' : ord.order_status === 'Confirmed' ? 'Confirmée' : ord.order_status === 'Packed' ? 'Préparation' : ord.order_status === 'Shipped' ? 'Expédiée' : 'En livraison'}
                     </span>
                   </div>
                 </div>

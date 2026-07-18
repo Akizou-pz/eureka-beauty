@@ -521,11 +521,11 @@ function CustomerDashboard() {
                           <p className="text-dark-muted font-light mt-0.5">Placée le {new Date(ord.created_at).toLocaleDateString('fr-FR')}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <span className={`px-2.5 py-0.5 rounded-full font-semibold text-[9px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : 'bg-gold/15 text-gold'}`}>
-                            {ord.order_status}
+                          <span className={`px-2.5 py-0.5 rounded-full font-semibold text-[9px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
+                            {ord.order_status === 'Delivered' ? 'Livrée' : ord.order_status === 'Cancelled' ? 'Annulée' : ord.order_status === 'Confirmed' ? 'Confirmée' : ord.order_status === 'Packed' ? 'Préparation' : ord.order_status === 'Shipped' ? 'Expédiée' : 'En livraison'}
                           </span>
-                          <span className={`px-2.5 py-0.5 rounded-full font-semibold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : 'bg-accent/15 text-accent'}`}>
-                            {ord.payment_status === 'Paid' ? 'PAYÉ' : 'COD PENDANT'}
+                          <span className={`px-2.5 py-0.5 rounded-full font-semibold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : ord.payment_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-accent/15 text-accent'}`}>
+                            {ord.payment_status === 'Paid' ? 'PAYÉ' : ord.payment_status === 'Cancelled' ? 'ANNULÉ' : 'EN ATTENTE'}
                           </span>
                         </div>
                       </div>
@@ -774,10 +774,10 @@ function CustomerDashboard() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-[10px] text-dark uppercase tracking-wider">État livraison :</span>
                           <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
-                            {ord.order_status}
+                            {ord.order_status === 'Delivered' ? 'Livrée' : ord.order_status === 'Cancelled' ? 'Annulée' : ord.order_status === 'Confirmed' ? 'Confirmée' : ord.order_status === 'Packed' ? 'Préparation' : ord.order_status === 'Shipped' ? 'Expédiée' : 'En livraison'}
                           </span>
-                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : 'bg-accent/15 text-accent'}`}>
-                            {ord.payment_status}
+                          <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : ord.payment_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-accent/15 text-accent'}`}>
+                            {ord.payment_status === 'Paid' ? 'PAYÉ' : ord.payment_status === 'Cancelled' ? 'ANNULÉ' : 'EN ATTENTE'}
                           </span>
                         </div>
 
