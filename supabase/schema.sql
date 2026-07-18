@@ -3,6 +3,7 @@
 
 -- Drop existing tables to avoid duplicate errors (reverse dependency order)
 DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS stock_movements CASCADE;
 DROP TABLE IF EXISTS order_items CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS wishlists CASCADE;
