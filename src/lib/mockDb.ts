@@ -1,5 +1,9 @@
-// EUREKA BEAUTY - LOCAL MOCK DATABASE SYSTEM
-// Persists in localStorage to provide a fully functional local state out of the box.
+// EUREKA BEAUTY - LOCAL MOCK DATABASE SYSTEM WITH SUPABASE SYNC
+import { supabase } from './supabaseClient';
+
+const HAS_SUPABASE_CREDS = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL && 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export interface Category {
   id: string;
@@ -509,6 +513,47 @@ class MockDB {
       if (!localStorage.getItem('eb_orders')) this.set('eb_orders', []);
       if (!localStorage.getItem('eb_subscribers')) this.set('eb_subscribers', []);
       if (!localStorage.getItem('eb_wishlist')) this.set('eb_wishlist', []);
+      if (!localStorage.getItem('eb_shipping_countries')) this.set('eb_shipping_countries', seedShippingCountries);
+
+      this.syncFromSupabase();
+    }
+  }
+
+  async syncFromSupabase() {
+    if (!HAS_SUPABASE_CREDS) return;
+    try {
+      const { data: categories } = await supabase.from('categories').select('*');
+      if (categories && categories.length > 0) this.set('eb_categories', categories);
+
+      const { data: brands } = await supabase.from('brands').select('*');
+      if (brands && brands.length > 0) this.set('eb_brands', brands);
+
+      const { data: products } = await supabase.from('products').select('*');
+      if (products && products.length > 0) this.set('eb_products', products);
+
+      const { data: coupons } = await supabase.from('coupons').select('*');
+      if (coupons && coupons.length > 0) this.set('eb_coupons', coupons);
+
+      const { data: testimonials } = await supabase.from('testimonials').select('*');
+      if (testimonials && testimonials.length > 0) this.set('eb_testimonials', testimonials);
+
+      const { data: blogPosts } = await supabase.from('blog_posts').select('*');
+      if (blogPosts && blogPosts.length > 0) this.set('eb_blog_posts', blogPosts);
+
+      const { data: shippingCountries } = await supabase.from('shipping_countries').select('*');
+      if (shippingCountries && shippingCountries.length > 0) this.set('eb_shipping_countries', shippingCountries);
+
+      const { data: reviews } = await supabase.from('reviews').select('*');
+      if (reviews && reviews.length > 0) this.set('eb_reviews', reviews);
+
+      const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
+      if (orders && orders.length > 0) this.set('eb_orders', orders);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('supabase_sync_complete'));
+      }
+    } catch (err) {
+      console.error('Supabase background read sync error:', err);
     }
   }
 
@@ -546,6 +591,13 @@ class MockDB {
     };
     products.push(newProduct);
     this.set('eb_products', products);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('products').insert([newProduct]).then(({ error }) => {
+        if (error) console.error('Supabase product insert error:', error);
+      });
+    }
+
     return newProduct;
   }
 
@@ -555,6 +607,13 @@ class MockDB {
     if (idx === -1) throw new Error('Product not found');
     products[idx] = { ...products[idx], ...updates };
     this.set('eb_products', products);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('products').update(updates).eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase product update error:', error);
+      });
+    }
+
     return products[idx];
   }
 
@@ -563,6 +622,13 @@ class MockDB {
     const filtered = products.filter((p) => p.id !== id);
     if (filtered.length === products.length) return false;
     this.set('eb_products', filtered);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('products').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase product delete error:', error);
+      });
+    }
+
     return true;
   }
 
@@ -583,6 +649,13 @@ class MockDB {
     };
     coupons.push(newCoupon);
     this.set('eb_coupons', coupons);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('coupons').insert([newCoupon]).then(({ error }) => {
+        if (error) console.error('Supabase coupon insert error:', error);
+      });
+    }
+
     return newCoupon;
   }
 
@@ -610,6 +683,13 @@ class MockDB {
     };
     countries.push(newCountry);
     this.set('eb_shipping_countries', countries);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('shipping_countries').insert([newCountry]).then(({ error }) => {
+        if (error) console.error('Supabase shipping country insert error:', error);
+      });
+    }
+
     return newCountry;
   }
 
@@ -619,6 +699,13 @@ class MockDB {
     if (idx === -1) throw new Error('Country not found');
     countries[idx] = { ...countries[idx], ...updates };
     this.set('eb_shipping_countries', countries);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('shipping_countries').update(updates).eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase shipping country update error:', error);
+      });
+    }
+
     return countries[idx];
   }
 
@@ -627,6 +714,13 @@ class MockDB {
     const filtered = countries.filter((c) => c.id !== id);
     if (filtered.length === countries.length) return false;
     this.set('eb_shipping_countries', filtered);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('shipping_countries').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase shipping country delete error:', error);
+      });
+    }
+
     return true;
   }
 
@@ -671,6 +765,12 @@ class MockDB {
       rating: parseFloat(avgRating.toFixed(1)),
       review_count: prodReviews.length,
     });
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('reviews').insert([newReview]).then(({ error }) => {
+        if (error) console.error('Supabase review insert error:', error);
+      });
+    }
 
     return newReview;
   }
@@ -725,6 +825,29 @@ class MockDB {
       }
     });
 
+    if (HAS_SUPABASE_CREDS) {
+      const { items, ...orderFields } = newOrder;
+      supabase.from('orders').insert([orderFields]).then(({ error }) => {
+        if (error) {
+          console.error('Supabase order insert error:', error);
+        } else {
+          const orderItemsToInsert = items.map(item => ({
+            id: item.id,
+            order_id: newOrder.id,
+            product_id: item.product_id,
+            product_name: item.product_name,
+            sku: item.sku,
+            quantity: item.quantity,
+            unit_price_xof: item.unit_price_xof,
+            total_price_xof: item.total_price_xof
+          }));
+          supabase.from('order_items').insert(orderItemsToInsert).then(({ error: itemsErr }) => {
+            if (itemsErr) console.error('Supabase order items insert error:', itemsErr);
+          });
+        }
+      });
+    }
+
     return newOrder;
   }
 
@@ -740,6 +863,15 @@ class MockDB {
     
     orders[idx].updated_at = new Date().toISOString();
     this.set('eb_orders', orders);
+
+    if (HAS_SUPABASE_CREDS) {
+      const updates: any = { order_status: status };
+      if (paymentStatus) updates.payment_status = paymentStatus;
+      supabase.from('orders').update(updates).eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase order update status error:', error);
+      });
+    }
+
     return orders[idx];
   }
 
@@ -782,6 +914,13 @@ class MockDB {
     if (subs.includes(email.toLowerCase())) return false;
     subs.push(email.toLowerCase());
     this.set('eb_subscribers', subs);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('newsletter_subscribers').insert([{ email: email.toLowerCase() }]).then(({ error }) => {
+        if (error) console.error('Supabase subscriber insert error:', error);
+      });
+    }
+
     return true;
   }
 

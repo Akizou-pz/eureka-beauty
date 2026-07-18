@@ -321,3 +321,24 @@ INSERT INTO testimonials (name, role, rating, comment, avatar_url) VALUES
 INSERT INTO blog_posts (title, slug, summary, content, category, image_url, read_time) VALUES
 ('5 Skincare Secrets for Glowing African Skin', '5-skincare-secrets-glowing-african-skin', 'Discover the power of natural botanicals and simple routines for radiant skin.', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sourcing locally-harvested organic Shea Butter and Baobab oils is key to locking in moisture under hot tropical climates. Always apply sunscreen, even on dark skin tones, to protect against hyperpigmentation and ultraviolet damage.', 'Skin Care', 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600', '4 min read'),
 ('How to Match Foundation for Rich Melanin Tones', 'how-to-match-foundation-rich-melanin-tones', 'A comprehensive guide to identifying your undertones and finding your true match.', 'Finding the perfect foundation shade can be challenging. We break down the differences between warm, cool, and neutral undertones, showcasing how premium brands like Fenty Beauty offer beautiful, non-ashy options for dark and golden skin.', 'Cosmetics', 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600', '6 min read');
+
+-- 14. SHIPPING COUNTRIES TABLE
+CREATE TABLE IF NOT EXISTS shipping_countries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    country_name VARCHAR(100) UNIQUE NOT NULL,
+    currency VARCHAR(10) NOT NULL,
+    custom_shipping_cost DECIMAL(12, 2) NOT NULL,
+    free_shipping_cities TEXT[] NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed Shipping Countries
+INSERT INTO shipping_countries (id, country_name, currency, custom_shipping_cost, free_shipping_cities) VALUES
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Côte d''Ivoire', 'XOF', 3000.00, ARRAY['Abidjan', 'Yamoussoukro']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'Senegal', 'XOF', 3500.00, ARRAY['Dakar']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'Benin', 'XOF', 2500.00, ARRAY['Cotonou']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'Togo', 'XOF', 2000.00, ARRAY['Lomé']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'Cameroon', 'XAF', 4000.00, ARRAY['Douala', 'Yaoundé']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'Mali', 'XOF', 3500.00, ARRAY['Bamako']),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'Burkina Faso', 'XOF', 3500.00, ARRAY['Ouagadougou'])
+ON CONFLICT (country_name) DO NOTHING;
