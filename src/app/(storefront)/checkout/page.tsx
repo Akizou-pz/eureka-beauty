@@ -44,8 +44,8 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
-  const [country, setCountry] = useState('Côte d\'Ivoire');
-  const [city, setCity] = useState('Abidjan');
+  const [country, setCountry] = useState('Togo');
+  const [city, setCity] = useState('Lomé');
   const [addressLine, setAddressLine] = useState('');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'MobileMoney' | 'Card'>('COD');
@@ -355,7 +355,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                 <input
                   type="tel"
                   required
-                  placeholder="+225 07 12 34 56"
+                  placeholder="+228 93 86 67 52"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
@@ -367,7 +367,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
                 </label>
                 <input
                   type="tel"
-                  placeholder="+225 07 12 34 56"
+                  placeholder="+228 93 86 67 52"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
                   className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"

@@ -111,7 +111,7 @@ export default function HomePage() {
     },
     {
       q: 'Quels sont les délais et tarifs de livraison ?',
-      a: 'Pour Abidjan et Dakar, nous livrons en moins de 24h ouvrées. Pour les autres capitales (Lomé, Cotonou, Douala, Yamoussoukro), les colis arrivent en 2 à 4 jours. Les tarifs varient entre 1500 FCFA et 3500 FCFA selon la zone.'
+      a: 'Pour Lomé et le Togo, nous livrons en moins de 24h ouvrées. Pour les autres capitales de la sous-région (Abidjan, Cotonou, Dakar, Douala), les colis arrivent en 2 à 4 jours. Les tarifs varient entre 1000 FCFA et 3500 FCFA selon la zone.'
     },
     {
       q: 'Puis-je commander par WhatsApp ?',

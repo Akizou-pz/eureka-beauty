@@ -286,8 +286,8 @@ export default function AdminOrdersPage() {
                 EUREKA <span className="text-gold font-normal">BEAUTY</span>
               </span>
               <p className="text-[9px] uppercase tracking-widest text-dark-muted mt-1">Reveal Your Natural Beauty</p>
-              <p className="text-xs text-dark-muted mt-2">Cocody Mermoz, Abidjan, Côte d'Ivoire</p>
-              <p className="text-xs text-dark-muted">contact@eurekabeauty.com | +225 07 07 07 07</p>
+              <p className="text-xs text-dark-muted mt-2">Lomé, Togo</p>
+              <p className="text-xs text-dark-muted">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
             </div>
             <div className="text-right">
               <h2 className="font-serif-display text-2xl font-semibold text-dark uppercase tracking-wider">Facture</h2>
@@ -363,7 +363,7 @@ export default function AdminOrdersPage() {
 
           {/* Terms info */}
           <div className="text-[10px] text-dark-muted font-light leading-relaxed border-t border-dark/10 pt-16 text-center">
-            <p>Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à contact@eurekabeauty.com.</p>
+            <p>Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à eurekasupplytg@gmail.com.</p>
             <p className="mt-1 font-bold text-dark uppercase tracking-widest">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
           </div>
 

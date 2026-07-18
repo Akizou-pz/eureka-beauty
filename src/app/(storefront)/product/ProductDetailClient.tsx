@@ -443,8 +443,8 @@ export default function ProductDetailClient() {
               <p>Nous livrons dans toute l\'Afrique de l\'Ouest et du Centre (Côte d\'Ivoire, Sénégal, Cameroun, Bénin, Togo, etc.).</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gold/10 p-3 rounded-lg">
-                  <h4 className="font-semibold text-dark">Abidjan & Dakar</h4>
-                  <p className="mt-1 text-[11px]">Livraison express en moins de 24 heures (1500 FCFA - 2000 FCFA).</p>
+                  <h4 className="font-semibold text-dark">Lomé & Togo</h4>
+                  <p className="mt-1 text-[11px]">Livraison express locale en moins de 24 heures (1000 FCFA / Gratuite).</p>
                 </div>
                 <div className="border border-gold/10 p-3 rounded-lg">
                   <h4 className="font-semibold text-dark">Autres Régions & Pays</h4>

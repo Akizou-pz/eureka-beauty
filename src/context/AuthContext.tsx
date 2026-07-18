@@ -153,8 +153,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           first_name: 'Directrice',
           last_name: 'Eureka',
           email: lowerEmail,
-          phone: '+225 07070707',
-          whatsapp: '+225 07070707',
+          phone: '+228 93866752',
+          whatsapp: '+228 93866752',
           loyalty_points: 9999,
           role: 'admin',
         };

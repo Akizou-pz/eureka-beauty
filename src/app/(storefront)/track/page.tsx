@@ -107,7 +107,7 @@ function OrderTracking() {
               <input
                 type="tel"
                 required
-                placeholder="Ex: +225 0707..."
+                placeholder="Ex: +228 9386..."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
@@ -216,7 +216,7 @@ function OrderTracking() {
               Une question concernant l'expédition de votre colis ? Contactez notre logistique.
             </p>
             <a
-              href={`https://wa.me/22507070707?text=Bonjour%20Eureka%20Beauty%2C%20je%20souhaite%20des%20informations%20sur%20la%20livraison%20de%20ma%20commande%20%23${order.order_number}`}
+              href={`https://wa.me/22893866752?text=Bonjour%20Eureka%20Beauty%2C%20je%20souhaite%20des%20informations%20sur%20la%20livraison%20de%20ma%20commande%20%23${order.order_number}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold uppercase tracking-widest px-4 py-2.5 rounded-lg flex items-center gap-2 transition flex-shrink-0"
