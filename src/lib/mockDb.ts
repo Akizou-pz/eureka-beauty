@@ -520,8 +520,12 @@ class MockDB {
   }
 
   async syncFromSupabase() {
-    if (!HAS_SUPABASE_CREDS) return;
+    if (!HAS_SUPABASE_CREDS) {
+      console.log('🔌 Database Engine: Running in offline mock database mode (Supabase credentials missing).');
+      return;
+    }
     try {
+      console.log('⚡ Database Engine: Connecting and syncing with live Supabase database...');
       const { data: categories } = await supabase.from('categories').select('*');
       if (categories && categories.length > 0) this.set('eb_categories', categories);
 
