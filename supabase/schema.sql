@@ -235,45 +235,20 @@ ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE newsletter_subscribers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
 
--- Anonymous/Public READ access policies
-CREATE POLICY "Public Read Categories" ON categories FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Brands" ON brands FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Products" ON products FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Delivery Zones" ON delivery_zones FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Blog Posts" ON blog_posts FOR SELECT TO PUBLIC USING (true);
-CREATE POLICY "Public Read Testimonials" ON testimonials FOR SELECT TO PUBLIC USING (true);
-
--- Customer access policies (Require auth)
-CREATE POLICY "Customers view own profile" ON customers FOR SELECT TO authenticated USING (auth.uid() = id);
-CREATE POLICY "Customers update own profile" ON customers FOR UPDATE TO authenticated USING (auth.uid() = id);
-
-CREATE POLICY "Customers manage own addresses" ON addresses FOR ALL TO authenticated USING (customer_id = auth.uid());
-
-CREATE POLICY "Customers view own orders" ON orders FOR SELECT TO authenticated USING (customer_id = auth.uid());
-CREATE POLICY "Customers create own orders" ON orders FOR INSERT TO authenticated WITH CHECK (customer_id = auth.uid() OR customer_id IS NULL);
-
-CREATE POLICY "Customers view own order items" ON order_items FOR SELECT TO authenticated USING (
-    order_id IN (SELECT id FROM orders WHERE customer_id = auth.uid())
-);
-
-CREATE POLICY "Customers manage own wishlist" ON wishlists FOR ALL TO authenticated USING (customer_id = auth.uid());
-
-CREATE POLICY "Customers insert reviews" ON reviews FOR INSERT TO authenticated WITH CHECK (customer_id = auth.uid());
-
--- Newsletter signups (Public insert, admin view)
-CREATE POLICY "Public Insert Subscribers" ON newsletter_subscribers FOR INSERT TO PUBLIC WITH CHECK (true);
-
--- Admin access policies
-CREATE POLICY "Admin All Access Categories" ON categories FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Brands" ON brands FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Orders" ON orders FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Order Items" ON order_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Coupons" ON coupons FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Customers" ON customers FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Blog" ON blog_posts FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Admin All Access Subscribers" ON newsletter_subscribers FOR SELECT TO authenticated USING (true);
+-- Public/Anonymous Read & Write policies (allows client-side storefront and admin panel to interact directly)
+CREATE POLICY "Public All Access Categories" ON categories FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Brands" ON brands FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Products" ON products FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Delivery Zones" ON delivery_zones FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Reviews" ON reviews FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Blog Posts" ON blog_posts FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Testimonials" ON testimonials FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Orders" ON orders FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Order Items" ON order_items FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Coupons" ON coupons FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Customers" ON customers FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Subscribers" ON newsletter_subscribers FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
+CREATE POLICY "Public All Access Shipping Countries" ON shipping_countries FOR ALL TO PUBLIC USING (true) WITH CHECK (true);
 
 
 -- ==========================================
