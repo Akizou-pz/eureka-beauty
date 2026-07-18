@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
-import { db, Product } from '@/lib/db';
+import { db, Product, HomepageSettings } from '@/lib/db';
 import {
   ArrowRight,
   Sparkles,
@@ -28,6 +28,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [flashSales, setFlashSales] = useState<Product[]>([]);
+  const [homepageSettings, setHomepageSettings] = useState<HomepageSettings | null>(null);
 
   // Ticking countdown state for Flash Sale (target midnight tonight)
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
@@ -41,20 +42,49 @@ export default function HomePage() {
   // Active Hero Banner Slide
   const [heroSlide, setHeroSlide] = useState(0);
 
-  const heroSlides = [
-    {
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&auto=format&fit=crop&q=80',
-      tag: language === 'EN' ? 'EXCLUSIVE EUREKA LAB' : 'EUREKA LAB EXCLUSIF',
-      title: language === 'EN' ? 'Authentic Skincare Revealing Your Confidence' : 'Des Soins Authentiques Révélant Votre Confiance',
-      desc: language === 'EN' ? 'Formulated with precious African botanicals to hydrate, even out and enhance melanin-rich skin.' : 'Formulés à base de plantes précieuses africaines pour hydrater, unifier et sublimer les peaux riches en mélanine.',
+  const loadHomepage = () => {
+    setHomepageSettings(db.getHomepageSettings());
+  };
+
+  const currentSettings = homepageSettings || {
+    hero_slides: [
+      {
+        image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&auto=format&fit=crop&q=80',
+        tag: 'EUREKA LAB EXCLUSIF',
+        tag_en: 'EXCLUSIVE EUREKA LAB',
+        title: 'Des Soins Authentiques Révélant Votre Confiance',
+        title_en: 'Authentic Skincare Revealing Your Confidence',
+        desc: 'Formulés à base de plantes précieuses africaines pour hydrater, unifier et sublimer les peaux riches en mélanine.',
+        desc_en: 'Formulated with precious African botanicals to hydrate, even out and enhance melanin-rich skin.'
+      },
+      {
+        image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200&auto=format&fit=crop&q=80',
+        tag: 'PARTENAIRE FENTY BEAUTY',
+        tag_en: 'FENTY BEAUTY PARTNER',
+        title: 'Sublimez Vos Teints Dorés et Métissés',
+        title_en: 'Enhance Your Golden and Mixed Skin Tones',
+        desc: 'Retrouvez nos sélections exclusives et adaptées au climat tropical. Sans effet masque, résistant à la chaleur.',
+        desc_en: 'Find our exclusive selections adapted to tropical climate. Lightweight, sweat-resistant.'
+      }
+    ],
+    before_after: {
+      before_image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=800&auto=format&fit=crop&q=80',
+      after_image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&auto=format&fit=crop&q=80'
     },
-    {
-      image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200&auto=format&fit=crop&q=80',
-      tag: language === 'EN' ? 'FENTY BEAUTY PARTNER' : 'PARTENAIRE FENTY BEAUTY',
-      title: language === 'EN' ? 'Enhance Your Golden and Mixed Skin Tones' : 'Sublimez Vos Teints Dorés et Métissés',
-      desc: language === 'EN' ? 'Find our exclusive selections adapted to tropical climate. Lightweight, sweat-resistant.' : 'Retrouvez nos sélections exclusives et adaptées au climat tropical. Sans effet masque, résistant à la chaleur.',
-    }
-  ];
+    instagram_images: [
+      'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400',
+      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=400'
+    ]
+  };
+
+  const heroSlides = currentSettings.hero_slides.map(slide => ({
+    image: slide.image,
+    tag: language === 'EN' ? (slide.tag_en || slide.tag) : slide.tag,
+    title: language === 'EN' ? (slide.title_en || slide.title) : slide.title,
+    desc: language === 'EN' ? (slide.desc_en || slide.desc) : slide.desc,
+  }));
 
   const loadProducts = () => {
     const prods = db.getProducts().map(p => ({
@@ -72,7 +102,9 @@ export default function HomePage() {
   // Load products & calculate countdown
   useEffect(() => {
     loadProducts();
+    loadHomepage();
     window.addEventListener('supabase_sync_complete', loadProducts);
+    window.addEventListener('supabase_sync_complete', loadHomepage);
 
     // Timer calculation (Midnight target)
     const calculateTimeLeft = () => {
@@ -100,6 +132,7 @@ export default function HomePage() {
       clearInterval(interval);
       clearInterval(heroTimer);
       window.removeEventListener('supabase_sync_complete', loadProducts);
+      window.removeEventListener('supabase_sync_complete', loadHomepage);
     };
   }, []);
 
@@ -397,7 +430,7 @@ export default function HomePage() {
           {/* After Image */}
           <div className="absolute inset-0 select-none">
             <img
-              src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&auto=format&fit=crop&q=80"
+              src={currentSettings.before_after.after_image}
               alt="After treatment skin"
               className="w-full h-full object-cover"
             />
@@ -412,7 +445,7 @@ export default function HomePage() {
             style={{ width: `${comparePosition}%` }}
           >
             <img
-              src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=800&auto=format&fit=crop&q=80"
+              src={currentSettings.before_after.before_image}
               alt="Before treatment skin"
               className="absolute inset-0 w-full h-[400px] object-cover max-w-none"
               style={{ width: '100%' }} // locks sizing
@@ -454,12 +487,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400',
-            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-            'https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=400'
-          ].map((url, idx) => (
+          {currentSettings.instagram_images.map((url, idx) => (
             <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden luxury-border">
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition duration-300 z-10 flex items-center justify-center text-white text-xs tracking-widest font-semibold gap-1">
                 <Sparkles size={14} className="text-gold" /> VOIR LE LOOK

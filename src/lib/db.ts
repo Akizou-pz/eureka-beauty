@@ -20,7 +20,8 @@ export type {
   BlogPost, 
   Testimonial,
   Customer,
-  ShippingCountry
+  ShippingCountry,
+  HomepageSettings
 } from './mockDb';
 
 /**
