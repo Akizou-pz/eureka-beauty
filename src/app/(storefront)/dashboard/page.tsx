@@ -121,13 +121,6 @@ function CustomerDashboard() {
     setAllOrders(db.getOrders());
   };
 
-  const handleDeliveryPaymentStatusChange = (orderId: string, paymentStatus: Order['payment_status']) => {
-    const ord = allOrders.find(o => o.id === orderId);
-    if (!ord) return;
-    db.updateOrderStatus(orderId, ord.order_status, paymentStatus);
-    setAllOrders(db.getOrders());
-  };
-
   const displayDeliveryOrders = allOrders.filter((ord) => {
     const q = deliverySearch.toLowerCase();
     const matchSearch =
@@ -787,52 +780,36 @@ function CustomerDashboard() {
                       </div>
 
                       {/* Status Update */}
-                      <div className="pt-4 border-t border-gold/5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                      <div className="pt-4 border-t border-gold/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex items-center gap-3 flex-wrap">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[10px] text-dark uppercase tracking-wider">État livraison :</span>
-                            <span className={`px-2 py-0.5 rounded-full font-bold text-[8px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
+                            <span className="font-bold text-[10px] text-dark uppercase tracking-wider">Étape livraison :</span>
+                            <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.order_status === 'Delivered' ? 'bg-success/15 text-success' : ord.order_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-gold/15 text-gold'}`}>
                               {ord.order_status === 'Delivered' ? 'Livrée' : ord.order_status === 'Cancelled' ? 'Annulée' : ord.order_status === 'Confirmed' ? 'Confirmée' : ord.order_status === 'Packed' ? 'Préparation' : ord.order_status === 'Shipped' ? 'Expédiée' : 'En livraison'}
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-[10px] text-dark uppercase tracking-wider">Paiement :</span>
-                            <span className={`px-2 py-0.5 rounded-full font-bold text-[8px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : ord.payment_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-accent/15 text-accent'}`}>
+                            <span className={`px-2.5 py-0.5 rounded-full font-bold text-[9px] uppercase ${ord.payment_status === 'Paid' ? 'bg-success/15 text-success' : ord.payment_status === 'Cancelled' ? 'bg-error/15 text-error' : 'bg-accent/15 text-accent'}`}>
                               {ord.payment_status === 'Paid' ? 'PAYÉ' : ord.payment_status === 'Cancelled' ? 'ANNULÉ' : 'EN ATTENTE'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4 flex-wrap w-full lg:w-auto">
-                          <div className="flex items-center gap-1.5">
-                            <label className="text-[10px] font-bold uppercase text-dark">Livraison :</label>
-                            <select
-                              value={ord.order_status}
-                              onChange={(e) => handleDeliveryStatusChange(ord.id, e.target.value as any)}
-                              className="bg-white border border-gold/20 rounded-lg px-2.5 py-1 text-xs text-dark outline-none focus:border-gold transition"
-                            >
-                              <option value="Confirmed">Confirmée</option>
-                              <option value="Packed">Préparation</option>
-                              <option value="Shipped">Expédiée</option>
-                              <option value="Out for Delivery">En livraison</option>
-                              <option value="Delivered">Livrée (Encaissement)</option>
-                              <option value="Cancelled">Annulée</option>
-                            </select>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            <label className="text-[10px] font-bold uppercase text-dark">Paiement :</label>
-                            <select
-                              value={ord.payment_status}
-                              onChange={(e) => handleDeliveryPaymentStatusChange(ord.id, e.target.value as any)}
-                              className="bg-white border border-gold/20 rounded-lg px-2.5 py-1 text-xs text-dark outline-none focus:border-gold transition"
-                            >
-                              <option value="Pending">En attente (Pending)</option>
-                              <option value="Paid">Payé (Paid)</option>
-                              <option value="Cancelled">Annulé (Cancelled)</option>
-                              <option value="Refunded">Remboursé (Refunded)</option>
-                            </select>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] font-bold uppercase text-dark">Changer le statut :</label>
+                          <select
+                            value={ord.order_status}
+                            onChange={(e) => handleDeliveryStatusChange(ord.id, e.target.value as any)}
+                            className="bg-white border border-gold/20 rounded-lg px-2.5 py-1 text-xs text-dark outline-none focus:border-gold transition"
+                          >
+                            <option value="Confirmed">Confirmée</option>
+                            <option value="Packed">Préparation</option>
+                            <option value="Shipped">Expédiée</option>
+                            <option value="Out for Delivery">En livraison</option>
+                            <option value="Delivered">Livrée (Encaissement)</option>
+                            <option value="Cancelled">Annulée</option>
+                          </select>
                         </div>
                       </div>
 
