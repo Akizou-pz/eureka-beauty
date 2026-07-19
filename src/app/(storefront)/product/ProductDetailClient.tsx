@@ -164,16 +164,16 @@ export default function ProductDetailClient() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 sm:space-y-16 overflow-x-hidden">
       
       {/* 1. Main Product Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
         
         {/* Left Column: Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative">
+        <div className="space-y-4 max-w-full">
+          <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative w-full max-h-[550px]">
             {displayProduct.discount_percent > 0 && (
-              <span className="absolute top-4 left-4 bg-accent text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-lg shadow z-10">
+              <span className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-accent text-white text-[9px] sm:text-[10px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-lg shadow z-10">
                 -{displayProduct.discount_percent}% OFF
               </span>
             )}
@@ -223,7 +223,7 @@ export default function ProductDetailClient() {
           
           {/* Thumbnails */}
           {(displayProduct.images.length > 1 || displayProduct.video_url) && (
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar pb-2">
               {displayProduct.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
@@ -231,7 +231,7 @@ export default function ProductDetailClient() {
                     setActiveImage(imgUrl);
                     setIsVideoActive(false);
                   }}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
                 >
                   <img src={imgUrl} alt={`${displayProduct.name} ${idx}`} className="w-full h-full object-cover" />
                 </button>
@@ -240,12 +240,12 @@ export default function ProductDetailClient() {
               {displayProduct.video_url && (
                 <button
                   onClick={() => setIsVideoActive(true)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
-                    <Play size={16} fill="currentColor" />
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
+                    <Play size={14} fill="currentColor" />
                   </div>
-                  <span className="text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">{t('video')}</span>
+                  <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">{t('video')}</span>
                 </button>
               )}
             </div>
@@ -255,10 +255,10 @@ export default function ProductDetailClient() {
         {/* Right Column: Pricing & Options */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-widest text-gold font-bold">
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gold font-bold">
               {db.getBrands().find(b => b.id === displayProduct.brand_id)?.name || 'EUREKA LAB'}
             </p>
-            <h1 className="font-serif-display text-3xl sm:text-4xl font-semibold text-dark">
+            <h1 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-dark leading-tight">
               {displayProduct.name}
             </h1>
             
@@ -281,18 +281,18 @@ export default function ProductDetailClient() {
 
           {/* Pricing */}
           <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between">
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-3 flex-wrap">
               {displayProduct.discount_percent > 0 ? (
                 <>
-                  <span className="text-2xl font-bold text-gold font-serif-display">
+                  <span className="text-xl sm:text-2xl font-bold text-gold font-serif-display">
                     {formatPrice(discountedUnitPrice)}
                   </span>
-                  <span className="text-sm text-dark-muted line-through mb-1">
+                  <span className="text-xs sm:text-sm text-dark-muted line-through mb-0.5">
                     {formatPrice(displayProduct.price_xof)}
                   </span>
                 </>
               ) : (
-                <span className="text-2xl font-bold text-dark font-serif-display">
+                <span className="text-xl sm:text-2xl font-bold text-dark font-serif-display">
                   {formatPrice(displayProduct.price_xof)}
                 </span>
               )}
@@ -301,15 +301,15 @@ export default function ProductDetailClient() {
             {/* Stock indicator */}
             <div>
               {isOutOfStock ? (
-                <span className="flex items-center gap-1 text-xs text-error font-bold bg-error/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="flex items-center gap-1 text-[10px] sm:text-xs text-error font-bold bg-error/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
                   <AlertTriangle size={12} /> {t('outOfStock')}
                 </span>
               ) : isLowStock ? (
-                <span className="flex items-center gap-1 text-xs text-accent font-bold bg-accent/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="flex items-center gap-1 text-[10px] sm:text-xs text-accent font-bold bg-accent/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
                   <AlertTriangle size={12} /> {t('onlyLeft', { count: displayProduct.stock })}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-xs text-success font-bold bg-success/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="flex items-center gap-1 text-[10px] sm:text-xs text-success font-bold bg-success/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
                   <Check size={12} /> {t('inStock')}
                 </span>
               )}
@@ -317,37 +317,37 @@ export default function ProductDetailClient() {
           </div>
 
           {/* Skin metadata */}
-          <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs">
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
-              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinTypeLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block">{displayProduct.skin_type === 'All' ? t('allSkinTypesLabel') : displayProduct.skin_type}</span>
+              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinTypeLabel')}</span>
+              <span className="font-semibold text-dark mt-0.5 block truncate text-xs">{displayProduct.skin_type === 'All' ? t('allSkinTypesLabel') : displayProduct.skin_type}</span>
             </div>
             <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
-              <span className="text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinConcernLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block">{displayProduct.skin_concern}</span>
+              <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinConcernLabel')}</span>
+              <span className="font-semibold text-dark mt-0.5 block truncate text-xs">{displayProduct.skin_concern}</span>
             </div>
           </div>
 
-          <p className="text-xs text-dark-muted leading-relaxed font-light">
+          <p className="text-xs sm:text-sm text-dark-muted leading-relaxed font-light">
             {displayProduct.description}
           </p>
 
           {/* Add to Cart Actions */}
           {!isOutOfStock && (
             <div className="space-y-4 pt-4 border-t border-gold/10">
-              <div className="flex gap-4 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
                 {/* Quantity */}
-                <div className="flex items-center border border-gold/15 rounded-lg bg-bg-cream overflow-hidden">
+                <div className="flex items-center justify-between sm:justify-start border border-gold/15 rounded-lg bg-bg-cream overflow-hidden">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-3 hover:text-gold transition font-bold"
+                    className="px-4 py-3 hover:text-gold transition font-bold text-sm"
                   >
                     -
                   </button>
                   <span className="px-4 font-bold text-sm text-dark">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="px-3 py-3 hover:text-gold transition font-bold"
+                    className="px-4 py-3 hover:text-gold transition font-bold text-sm"
                   >
                     +
                   </button>
@@ -358,7 +358,7 @@ export default function ProductDetailClient() {
                     addToCart(product, quantity);
                     alert(t('itemAddedAlert', { quantity }));
                   }}
-                  className="flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest py-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest py-3.5 sm:py-4 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   <ShoppingBag size={16} />
                   <span>{t('addToCart')}</span>
@@ -374,22 +374,25 @@ export default function ProductDetailClient() {
               addToCart(product, quantity);
               router.push('/checkout?from=whatsapp');
             }}
-            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4"
+            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4 min-h-[44px]"
           >
             <MessageCircle size={16} />
             <span>{t('buyWhatsApp')}</span>
           </button>
 
           {/* Quick trust flags */}
-          <div className="grid grid-cols-3 gap-2 pt-6 text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
-            <span className="flex flex-col items-center gap-1.5">
-              <ShieldCheck size={14} className="text-gold" /> {t('guaranteeTitle')}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-6 text-[9px] sm:text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
+            <span className="flex flex-col items-center gap-1.5 p-1">
+              <ShieldCheck size={16} className="text-gold" />
+              <span>{t('guaranteeTitle')}</span>
             </span>
-            <span className="flex flex-col items-center gap-1.5">
-              <Truck size={14} className="text-gold" /> {t('freeCod')}
+            <span className="flex flex-col items-center gap-1.5 p-1">
+              <Truck size={16} className="text-gold" />
+              <span>{t('freeCod')}</span>
             </span>
-            <span className="flex flex-col items-center gap-1.5">
-              <RotateCcw size={14} className="text-gold" /> {t('returnDays')}
+            <span className="flex flex-col items-center gap-1.5 p-1">
+              <RotateCcw size={16} className="text-gold" />
+              <span>{t('returnDays')}</span>
             </span>
           </div>
 
