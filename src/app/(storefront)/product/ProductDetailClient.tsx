@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
 import { db, Product, Review } from '@/lib/db';
+import { trackMetaEvent } from '@/lib/metaPixel';
 import { 
   Star, 
   ShoppingBag, 
@@ -72,6 +73,13 @@ export default function ProductDetailClient() {
     setProduct(sanitized);
     setActiveImage(sanitized.images[0] || '');
     setIsVideoActive(false);
+
+    trackMetaEvent('ViewContent', {
+      content_name: sanitized.name,
+      content_category: sanitized.category_id,
+      value: sanitized.price_xof,
+      currency: 'XOF'
+    });
     
     // Fetch product reviews
     const prodReviews = db.getReviews(foundProduct.id);
@@ -357,6 +365,11 @@ export default function ProductDetailClient() {
                 <button
                   onClick={() => {
                     addToCart(product, quantity);
+                    trackMetaEvent('AddToCart', {
+                      content_name: product.name,
+                      value: discountedUnitPrice * quantity,
+                      currency: 'XOF'
+                    });
                     alert(t('itemAddedAlert', { quantity }));
                   }}
                   className="w-full sm:flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 h-11 px-4 text-center"

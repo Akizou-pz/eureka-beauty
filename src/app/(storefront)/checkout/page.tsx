@@ -7,6 +7,7 @@ import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { db, DeliveryZone, Order, ShippingCountry } from '@/lib/db';
+import { trackMetaEvent } from '@/lib/metaPixel';
 import {
   ShoppingBag,
   CheckCircle,
@@ -213,6 +214,12 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
     try {
       const order = db.createOrder(orderData);
       setPlacedOrder(order);
+
+      trackMetaEvent('Purchase', {
+        value: finalTotal,
+        currency: 'XOF',
+        num_items: orderItems.length
+      });
 
       // Reward loyalty points (5% of subtotal, rounded)
       if (user) {
