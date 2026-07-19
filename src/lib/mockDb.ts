@@ -996,8 +996,11 @@ class MockDB {
           orders[idx].cancel_reason = cancelReason;
         }
       } else {
-        if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
-          orders[idx].payment_status = 'Pending';
+        // Reset to Pending ONLY if it was not already manually confirmed as Paid or Refunded
+        if (orders[idx].payment_status !== 'Paid' && orders[idx].payment_status !== 'Refunded') {
+          if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
+            orders[idx].payment_status = 'Pending';
+          }
         }
       }
     }
@@ -1016,8 +1019,10 @@ class MockDB {
           updates.payment_status = 'Cancelled';
           if (cancelReason) updates.cancel_reason = cancelReason;
         } else {
-          if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
-            updates.payment_status = 'Pending';
+          if (orders[idx].payment_status !== 'Paid' && orders[idx].payment_status !== 'Refunded') {
+            if (orders[idx].payment_method === 'COD' || orders[idx].payment_method === 'WhatsApp') {
+              updates.payment_status = 'Pending';
+            }
           }
         }
       }
