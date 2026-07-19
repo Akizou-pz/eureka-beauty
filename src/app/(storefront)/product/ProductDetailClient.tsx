@@ -164,16 +164,16 @@ export default function ProductDetailClient() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 sm:space-y-16 overflow-x-hidden">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-10 space-y-8 sm:space-y-16 w-full overflow-hidden">
       
       {/* 1. Main Product Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-start w-full min-w-0">
         
         {/* Left Column: Gallery */}
-        <div className="space-y-4 w-full min-w-0">
-          <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative w-full max-h-[550px]">
+        <div className="space-y-3 sm:space-y-4 w-full min-w-0">
+          <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative w-full max-h-[380px] sm:max-h-[550px]">
             {displayProduct.discount_percent > 0 && (
-              <span className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-accent text-white text-[9px] sm:text-[10px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-lg shadow z-10">
+              <span className="absolute top-3 left-3 bg-accent text-white text-[9px] sm:text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-lg shadow z-10">
                 -{displayProduct.discount_percent}% OFF
               </span>
             )}
@@ -223,7 +223,7 @@ export default function ProductDetailClient() {
           
           {/* Thumbnails */}
           {(displayProduct.images.length > 1 || displayProduct.video_url) && (
-            <div className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar pb-2 max-w-full">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
               {displayProduct.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
@@ -231,7 +231,7 @@ export default function ProductDetailClient() {
                     setActiveImage(imgUrl);
                     setIsVideoActive(false);
                   }}
-                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
+                  className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 transition ${!isVideoActive && activeImage === imgUrl ? 'border-gold' : 'border-gold/15'}`}
                 >
                   <img src={imgUrl} alt={`${displayProduct.name} ${idx}`} className="w-full h-full object-cover" />
                 </button>
@@ -240,12 +240,12 @@ export default function ProductDetailClient() {
               {displayProduct.video_url && (
                 <button
                   onClick={() => setIsVideoActive(true)}
-                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
+                  className={`w-14 h-14 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 bg-white flex-shrink-0 flex flex-col items-center justify-center relative transition ${isVideoActive ? 'border-gold bg-gold/5' : 'border-gold/15 bg-white/40'}`}
                 >
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
-                    <Play size={14} fill="currentColor" />
+                  <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-gold/10 text-gold flex items-center justify-center">
+                    <Play size={12} fill="currentColor" />
                   </div>
-                  <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-dark mt-1 font-bold">{t('video')}</span>
+                  <span className="text-[7px] sm:text-[9px] uppercase tracking-wider text-dark mt-0.5 font-bold">{t('video')}</span>
                 </button>
               )}
             </div>
@@ -253,17 +253,17 @@ export default function ProductDetailClient() {
         </div>
 
         {/* Right Column: Pricing & Options */}
-        <div className="space-y-6 w-full min-w-0 max-w-full overflow-hidden">
-          <div className="space-y-2">
+        <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
+          <div className="space-y-1 sm:space-y-2">
             <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gold font-bold">
               {db.getBrands().find(b => b.id === displayProduct.brand_id)?.name || 'EUREKA LAB'}
             </p>
-            <h1 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-dark leading-tight break-words">
+            <h1 className="font-serif-display text-xl sm:text-3xl lg:text-4xl font-semibold text-dark leading-tight break-words">
               {displayProduct.name}
             </h1>
             
             {/* Reviews Summary */}
-            <div className="flex items-center gap-2 text-gold">
+            <div className="flex items-center gap-2 text-gold pt-1">
               <div className="flex">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
@@ -279,15 +279,15 @@ export default function ProductDetailClient() {
             </div>
           </div>
 
-          {/* Pricing */}
-          <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-end gap-3 flex-wrap">
+          {/* Pricing Card */}
+          <div className="bg-bg-cream/60 p-3.5 sm:p-4 rounded-xl luxury-border flex items-center justify-between flex-wrap gap-2 w-full">
+            <div className="flex items-baseline gap-2.5 flex-wrap">
               {displayProduct.discount_percent > 0 ? (
                 <>
                   <span className="text-xl sm:text-2xl font-bold text-gold font-serif-display">
                     {formatPrice(discountedUnitPrice)}
                   </span>
-                  <span className="text-xs sm:text-sm text-dark-muted line-through mb-0.5">
+                  <span className="text-xs sm:text-sm text-dark-muted line-through">
                     {formatPrice(displayProduct.price_xof)}
                   </span>
                 </>
@@ -317,14 +317,14 @@ export default function ProductDetailClient() {
           </div>
 
           {/* Skin metadata */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs">
-            <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 text-xs w-full">
+            <div className="border border-gold/10 p-2.5 sm:p-3 rounded-lg bg-white/50">
               <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinTypeLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block truncate text-xs">{displayProduct.skin_type === 'All' ? t('allSkinTypesLabel') : displayProduct.skin_type}</span>
+              <span className="font-semibold text-dark mt-0.5 block truncate text-[11px] sm:text-xs">{displayProduct.skin_type === 'All' ? t('allSkinTypesLabel') : displayProduct.skin_type}</span>
             </div>
-            <div className="border border-gold/10 p-3 rounded-lg bg-white/40">
+            <div className="border border-gold/10 p-2.5 sm:p-3 rounded-lg bg-white/50">
               <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-gold font-bold block">{t('skinConcernLabel')}</span>
-              <span className="font-semibold text-dark mt-0.5 block truncate text-xs">{displayProduct.skin_concern}</span>
+              <span className="font-semibold text-dark mt-0.5 block truncate text-[11px] sm:text-xs">{displayProduct.skin_concern}</span>
             </div>
           </div>
 
@@ -334,34 +334,35 @@ export default function ProductDetailClient() {
 
           {/* Add to Cart Actions */}
           {!isOutOfStock && (
-            <div className="space-y-4 pt-4 border-t border-gold/10 w-full min-w-0">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center w-full min-w-0">
-                {/* Quantity */}
-                <div className="flex items-center justify-between border border-gold/15 rounded-lg bg-bg-cream overflow-hidden w-full sm:w-36 shrink-0">
+            <div className="space-y-3 pt-3 border-t border-gold/10 w-full">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 items-stretch sm:items-center w-full">
+                {/* Quantity Controls */}
+                <div className="flex items-center justify-between border border-gold/20 rounded-xl bg-white px-1 py-1 w-full sm:w-36 shrink-0 h-11">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-2.5 hover:text-gold transition font-bold text-sm min-w-[40px] text-center"
+                    className="w-10 h-full hover:text-gold transition font-bold text-base flex items-center justify-center text-dark"
                   >
                     -
                   </button>
-                  <span className="px-2 font-bold text-sm text-dark">{quantity}</span>
+                  <span className="font-bold text-sm text-dark px-2">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="px-4 py-2.5 hover:text-gold transition font-bold text-sm min-w-[40px] text-center"
+                    className="w-10 h-full hover:text-gold transition font-bold text-base flex items-center justify-center text-dark"
                   >
                     +
                   </button>
                 </div>
 
+                {/* Add to Cart Button */}
                 <button
                   onClick={() => {
                     addToCart(product, quantity);
                     alert(t('itemAddedAlert', { quantity }));
                   }}
-                  className="w-full sm:flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-wider py-3.5 sm:py-4 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[44px] text-center whitespace-normal"
+                  className="w-full sm:flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 h-11 px-4 text-center"
                 >
                   <ShoppingBag size={16} className="shrink-0" />
-                  <span>{t('addToCart')}</span>
+                  <span className="truncate">{t('addToCart')}</span>
                 </button>
               </div>
             </div>
@@ -374,25 +375,25 @@ export default function ProductDetailClient() {
               addToCart(product, quantity);
               router.push('/checkout?from=whatsapp');
             }}
-            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 px-4 rounded-lg text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 mt-4 min-h-[44px] text-center whitespace-normal"
+            className="w-full border-2 border-[#25D366] text-[#20ba5a] hover:bg-[#25D366] hover:text-white transition rounded-xl text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 mt-2 h-11 px-3 text-center"
           >
             <MessageCircle size={16} className="shrink-0" />
-            <span>{t('buyWhatsApp')}</span>
+            <span className="truncate">{t('buyWhatsApp')}</span>
           </button>
 
           {/* Quick trust flags */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-6 text-[9px] sm:text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
-            <span className="flex flex-col items-center gap-1.5 p-1">
-              <ShieldCheck size={16} className="text-gold shrink-0" />
-              <span>{t('guaranteeTitle')}</span>
+          <div className="grid grid-cols-3 gap-1 pt-4 text-[8px] sm:text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/10 text-center bg-white p-2.5 rounded-xl border">
+            <span className="flex flex-col items-center gap-1">
+              <ShieldCheck size={14} className="text-gold shrink-0" />
+              <span className="leading-tight">{t('guaranteeTitle')}</span>
             </span>
-            <span className="flex flex-col items-center gap-1.5 p-1">
-              <Truck size={16} className="text-gold shrink-0" />
-              <span>{t('freeCod')}</span>
+            <span className="flex flex-col items-center gap-1">
+              <Truck size={14} className="text-gold shrink-0" />
+              <span className="leading-tight">{t('freeCod')}</span>
             </span>
-            <span className="flex flex-col items-center gap-1.5 p-1">
-              <RotateCcw size={16} className="text-gold shrink-0" />
-              <span>{t('returnDays')}</span>
+            <span className="flex flex-col items-center gap-1">
+              <RotateCcw size={14} className="text-gold shrink-0" />
+              <span className="leading-tight">{t('returnDays')}</span>
             </span>
           </div>
 
