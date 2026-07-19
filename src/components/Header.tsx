@@ -369,7 +369,7 @@ export default function Header() {
           />
 
           <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white luxury-shadow flex flex-col h-full fade-in">
+            <div className="w-full max-w-md bg-white luxury-shadow flex flex-col h-full fade-in">
 
               {/* Drawer Header */}
               <div className="px-6 py-5 border-b border-gold/10 flex items-center justify-between">

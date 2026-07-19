@@ -167,10 +167,10 @@ export default function ProductDetailClient() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 sm:space-y-16 overflow-x-hidden">
       
       {/* 1. Main Product Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full min-w-0">
         
         {/* Left Column: Gallery */}
-        <div className="space-y-4 max-w-full">
+        <div className="space-y-4 w-full min-w-0">
           <div className="aspect-square bg-white rounded-2xl overflow-hidden luxury-border luxury-shadow-sm flex items-center justify-center relative w-full max-h-[550px]">
             {displayProduct.discount_percent > 0 && (
               <span className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-accent text-white text-[9px] sm:text-[10px] font-bold tracking-widest uppercase px-2.5 py-1.5 rounded-lg shadow z-10">
@@ -223,7 +223,7 @@ export default function ProductDetailClient() {
           
           {/* Thumbnails */}
           {(displayProduct.images.length > 1 || displayProduct.video_url) && (
-            <div className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar pb-2 max-w-full">
               {displayProduct.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
@@ -253,12 +253,12 @@ export default function ProductDetailClient() {
         </div>
 
         {/* Right Column: Pricing & Options */}
-        <div className="space-y-6">
+        <div className="space-y-6 w-full min-w-0 max-w-full overflow-hidden">
           <div className="space-y-2">
             <p className="text-[10px] sm:text-xs uppercase tracking-widest text-gold font-bold">
               {db.getBrands().find(b => b.id === displayProduct.brand_id)?.name || 'EUREKA LAB'}
             </p>
-            <h1 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-dark leading-tight">
+            <h1 className="font-serif-display text-2xl sm:text-3xl lg:text-4xl font-semibold text-dark leading-tight break-words">
               {displayProduct.name}
             </h1>
             
@@ -280,7 +280,7 @@ export default function ProductDetailClient() {
           </div>
 
           {/* Pricing */}
-          <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between">
+          <div className="bg-bg-cream/40 p-4 rounded-xl luxury-border flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-end gap-3 flex-wrap">
               {displayProduct.discount_percent > 0 ? (
                 <>
@@ -328,26 +328,26 @@ export default function ProductDetailClient() {
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-dark-muted leading-relaxed font-light">
+          <p className="text-xs sm:text-sm text-dark-muted leading-relaxed font-light break-words">
             {displayProduct.description}
           </p>
 
           {/* Add to Cart Actions */}
           {!isOutOfStock && (
-            <div className="space-y-4 pt-4 border-t border-gold/10">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+            <div className="space-y-4 pt-4 border-t border-gold/10 w-full min-w-0">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center w-full min-w-0">
                 {/* Quantity */}
-                <div className="flex items-center justify-between sm:justify-start border border-gold/15 rounded-lg bg-bg-cream overflow-hidden">
+                <div className="flex items-center justify-between border border-gold/15 rounded-lg bg-bg-cream overflow-hidden w-full sm:w-36 shrink-0">
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-3 hover:text-gold transition font-bold text-sm"
+                    className="px-4 py-2.5 hover:text-gold transition font-bold text-sm min-w-[40px] text-center"
                   >
                     -
                   </button>
-                  <span className="px-4 font-bold text-sm text-dark">{quantity}</span>
+                  <span className="px-2 font-bold text-sm text-dark">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                    className="px-4 py-3 hover:text-gold transition font-bold text-sm"
+                    className="px-4 py-2.5 hover:text-gold transition font-bold text-sm min-w-[40px] text-center"
                   >
                     +
                   </button>
@@ -358,9 +358,9 @@ export default function ProductDetailClient() {
                     addToCart(product, quantity);
                     alert(t('itemAddedAlert', { quantity }));
                   }}
-                  className="flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest py-3.5 sm:py-4 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[44px]"
+                  className="w-full sm:flex-1 bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-wider py-3.5 sm:py-4 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 min-h-[44px] text-center whitespace-normal"
                 >
-                  <ShoppingBag size={16} />
+                  <ShoppingBag size={16} className="shrink-0" />
                   <span>{t('addToCart')}</span>
                 </button>
               </div>
@@ -374,24 +374,24 @@ export default function ProductDetailClient() {
               addToCart(product, quantity);
               router.push('/checkout?from=whatsapp');
             }}
-            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 rounded-lg text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 mt-4 min-h-[44px]"
+            className="w-full border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white transition py-3 px-4 rounded-lg text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 mt-4 min-h-[44px] text-center whitespace-normal"
           >
-            <MessageCircle size={16} />
+            <MessageCircle size={16} className="shrink-0" />
             <span>{t('buyWhatsApp')}</span>
           </button>
 
           {/* Quick trust flags */}
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-6 text-[9px] sm:text-[10px] text-dark-muted font-light uppercase tracking-wider border-t border-gold/5 text-center">
             <span className="flex flex-col items-center gap-1.5 p-1">
-              <ShieldCheck size={16} className="text-gold" />
+              <ShieldCheck size={16} className="text-gold shrink-0" />
               <span>{t('guaranteeTitle')}</span>
             </span>
             <span className="flex flex-col items-center gap-1.5 p-1">
-              <Truck size={16} className="text-gold" />
+              <Truck size={16} className="text-gold shrink-0" />
               <span>{t('freeCod')}</span>
             </span>
             <span className="flex flex-col items-center gap-1.5 p-1">
-              <RotateCcw size={16} className="text-gold" />
+              <RotateCcw size={16} className="text-gold shrink-0" />
               <span>{t('returnDays')}</span>
             </span>
           </div>

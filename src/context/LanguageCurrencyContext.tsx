@@ -137,7 +137,7 @@ const translations: TranslationDict = {
   allSkinTypesLabel: { FR: 'Tous les types', EN: 'All skin types' },
   itemAddedAlert: { FR: '{quantity} article(s) ajouté(s) au panier !', EN: '{quantity} item(s) added to cart!' },
   singleAddedAlert: { FR: '{name} ajouté !', EN: '{name} added!' },
-  buyWhatsApp: { FR: 'Acheter par WhatsApp (Livraison Gratuite)', EN: 'Buy via WhatsApp (Free Delivery)' },
+  buyWhatsApp: { FR: 'Acheter par WhatsApp', EN: 'Buy via WhatsApp' },
   freeCod: { FR: 'COD Gratuit', EN: 'Free COD' },
   returnDays: { FR: 'Retours 7 jours', EN: '7 Days Return' },
   bundleOffer: { FR: "Achetez ces trois articles ensemble et bénéficiez d'une remise spéciale de 10% sur le lot complet.", EN: "Buy these three items together and get a special 10% discount on the entire bundle." },
