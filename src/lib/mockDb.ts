@@ -581,6 +581,25 @@ class MockDB {
         const { data: reviews } = await supabase.from('reviews').select('*');
         if (reviews && reviews.length > 0) this.set('eb_reviews', reviews);
 
+        const { data: customers } = await supabase.from('customers').select('*');
+        if (customers && customers.length > 0) {
+          const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+          customers.forEach((c: any) => {
+            registered[c.email] = {
+              id: c.id,
+              first_name: c.first_name,
+              last_name: c.last_name,
+              email: c.email,
+              phone: c.phone || '',
+              whatsapp: c.whatsapp || '',
+              loyalty_points: c.loyalty_points || 0,
+              role: c.role || 'customer',
+              password: registered[c.email]?.password || 'password123'
+            };
+          });
+          localStorage.setItem('eb_users_db', JSON.stringify(registered));
+        }
+
         const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
         if (orders) this.set('eb_orders', orders);
 
@@ -602,6 +621,39 @@ class MockDB {
             const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
             if (orders) {
               this.set('eb_orders', orders);
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      // Subscribe to real-time changes on customers
+      supabase
+        .channel('public:customers')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'customers' },
+          async () => {
+            console.log('🔔 Realtime Update received for customers');
+            const { data: customers } = await supabase.from('customers').select('*');
+            if (customers && customers.length > 0) {
+              const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+              customers.forEach((c: any) => {
+                registered[c.email] = {
+                  id: c.id,
+                  first_name: c.first_name,
+                  last_name: c.last_name,
+                  email: c.email,
+                  phone: c.phone || '',
+                  whatsapp: c.whatsapp || '',
+                  loyalty_points: c.loyalty_points || 0,
+                  role: c.role || 'customer',
+                  password: registered[c.email]?.password || 'password123'
+                };
+              });
+              localStorage.setItem('eb_users_db', JSON.stringify(registered));
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
               }
@@ -1172,6 +1224,32 @@ class MockDB {
       window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
     }
     return settings;
+  }
+
+  async fetchUsersFromSupabase(): Promise<Customer[]> {
+    if (HAS_SUPABASE_CREDS) {
+      const { data: customers, error } = await supabase.from('customers').select('*');
+      if (!error && customers && customers.length > 0) {
+        if (typeof window !== 'undefined') {
+          const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+          customers.forEach((c: any) => {
+            registered[c.email] = {
+              id: c.id,
+              first_name: c.first_name,
+              last_name: c.last_name,
+              email: c.email,
+              phone: c.phone || '',
+              whatsapp: c.whatsapp || '',
+              loyalty_points: c.loyalty_points || 0,
+              role: c.role || 'customer',
+              password: registered[c.email]?.password || 'password123'
+            };
+          });
+          localStorage.setItem('eb_users_db', JSON.stringify(registered));
+        }
+      }
+    }
+    return this.getUsers();
   }
 
   getUsers(): Customer[] {

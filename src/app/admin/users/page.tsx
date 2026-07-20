@@ -40,8 +40,9 @@ export default function AdminUsersPage() {
     role: 'customer' as 'admin' | 'delivery' | 'customer',
   });
 
-  const loadData = () => {
-    setUsers(db.getUsers());
+  const loadData = async () => {
+    const loadedUsers = await db.fetchUsersFromSupabase();
+    setUsers(loadedUsers);
   };
 
   useEffect(() => {
