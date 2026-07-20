@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
+import { requestNotificationPermission } from '@/lib/notifications';
 import { 
   LayoutDashboard, 
   ShoppingBag, 
@@ -32,6 +33,10 @@ export default function AdminLayout({
   const { user, loading } = useAuth();
   const { formatPrice } = useLangCurr();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   if (loading) {
     return (

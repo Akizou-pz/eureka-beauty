@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { db, DeliveryZone, Order, ShippingCountry } from '@/lib/db';
 import { trackMetaEvent } from '@/lib/metaPixel';
+import { notifyNewOrder, sendOrderEmailAlert } from '@/lib/notifications';
 import {
   ShoppingBag,
   CheckCircle,
@@ -214,6 +215,19 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
     try {
       const order = db.createOrder(orderData);
       setPlacedOrder(order);
+
+      // Trigger App Push Notification & Sound
+      notifyNewOrder(order.order_number, `${order.first_name} ${order.last_name}`, finalTotal);
+      
+      // Trigger Admin & Delivery Driver Email Alert
+      sendOrderEmailAlert({
+        order_number: order.order_number,
+        first_name: order.first_name,
+        last_name: order.last_name,
+        total_xof: finalTotal,
+        phone: order.phone,
+        city: order.city,
+      });
 
       trackMetaEvent('Purchase', {
         value: finalTotal,

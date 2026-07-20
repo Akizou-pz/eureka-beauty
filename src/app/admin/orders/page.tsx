@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, Order } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
+import { notifyNewOrder } from '@/lib/notifications';
 import { ClipboardList, Search, Eye, Edit, Printer, CheckCircle, Clock, X, AlertTriangle } from 'lucide-react';
 
 export default function AdminOrdersPage() {
@@ -13,13 +14,25 @@ export default function AdminOrdersPage() {
 
   // Selection/detail state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [prevOrdersCount, setPrevOrdersCount] = useState<number | null>(null);
 
   // Print Mode State
   const [isPrinting, setIsPrinting] = useState(false);
 
   const loadOrders = () => {
     const allOrders = db.getOrders();
-    setOrders(allOrders);
+    
+    setOrders((prevOrders) => {
+      if (prevOrders.length > 0 && allOrders.length > prevOrders.length) {
+        const latest = allOrders[0];
+        if (latest) {
+          notifyNewOrder(latest.order_number, `${latest.first_name} ${latest.last_name}`, latest.total_xof);
+        }
+      }
+      return allOrders;
+    });
+
     setSelectedOrder((prev) => {
       if (!prev) return null;
       return allOrders.find((o) => o.id === prev.id) || null;

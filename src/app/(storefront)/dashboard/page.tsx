@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { db, Order, Product } from '@/lib/db';
+import { requestNotificationPermission, notifyNewOrder } from '@/lib/notifications';
 import { 
   User, 
   ShoppingBag, 
@@ -72,6 +73,7 @@ function CustomerDashboard() {
       if (user.role === 'delivery') {
         setActiveTab('delivery-orders');
         setAllOrders(db.getOrders());
+        requestNotificationPermission();
       } else {
         setActiveTab('orders');
       }
