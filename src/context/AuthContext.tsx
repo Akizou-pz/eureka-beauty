@@ -24,13 +24,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Synchronize database customer profile from Supabase Auth details
   const syncUserSession = async (authUser: any) => {
     try {
-      const { data: profile, error } = await supabase
+      let { data: profile } = await supabase
         .from('customers')
         .select('*')
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
 
-      if (error || !profile) {
+      if (!profile && authUser.email) {
+        const { data: profileByEmail } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('email', authUser.email)
+          .maybeSingle();
+
+        if (profileByEmail) {
+          profile = profileByEmail;
+          await supabase.from('customers').update({ id: authUser.id }).eq('email', authUser.email);
+          profile.id = authUser.id;
+        }
+      }
+
+      if (!profile) {
         // User exists in auth but doesn't have a public.customers row yet (first-time social signup)
         const nameParts = (authUser.user_metadata?.full_name || '').split(' ');
         const firstName = authUser.user_metadata?.first_name || nameParts[0] || 'Client';
@@ -43,17 +57,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: authUser.email || '',
           phone: authUser.phone || '',
           whatsapp: '',
-          loyalty_points: 50, // 50 loyalty points signup bonus
+          loyalty_points: 50,
           role: 'customer',
         };
 
-        // Try inserting the new customer profile
         await supabase.from('customers').insert([newCustomer]);
-        
         setUser(newCustomer);
         localStorage.setItem('eb_session', JSON.stringify(newCustomer));
       } else {
-        // Exists: sync profile values to the local state
         setUser(profile);
         localStorage.setItem('eb_session', JSON.stringify(profile));
       }

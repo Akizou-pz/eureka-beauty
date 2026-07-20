@@ -1,33 +1,52 @@
 import { NextResponse } from 'next/server';
+import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { order_number, first_name, last_name, total_xof, phone, city } = body;
 
-    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@eurekabeauty.com';
-    const deliveryEmail = process.env.DELIVERY_NOTIFICATION_EMAIL || 'livraison@eurekabeauty.com';
+    let recipientEmails: string[] = [];
 
-    console.log(`[EMAIL ALERT] New Order Received #${order_number}`);
-    console.log(`To Admin: ${adminEmail}`);
-    console.log(`To Delivery: ${deliveryEmail}`);
-    console.log(`Details: ${first_name} ${last_name} - ${total_xof} XOF - ${phone} (${city})`);
+    // 1. Fetch dynamic admin and delivery emails from Supabase customers table
+    if (HAS_SUPABASE_CREDS) {
+      const { data: staffMembers } = await supabase
+        .from('customers')
+        .select('email, role')
+        .in('role', ['admin', 'delivery']);
 
-    // If Resend or SMTP API key is configured, send actual email
+      if (staffMembers && staffMembers.length > 0) {
+        recipientEmails = staffMembers.map((s: any) => s.email).filter(Boolean);
+      }
+    }
+
+    // 2. Fallback / supplementary emails from environment or defaults
+    if (recipientEmails.length === 0) {
+      const fallbackAdmin = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@eurekabeauty.com';
+      const fallbackDelivery = process.env.DELIVERY_NOTIFICATION_EMAIL || 'livraison@eurekabeauty.com';
+      recipientEmails = [fallbackAdmin, fallbackDelivery];
+    }
+
+    // Deduplicate emails
+    recipientEmails = Array.from(new Set(recipientEmails.map((e) => e.toLowerCase().trim())));
+
+    console.log(`[EMAIL NOTIFICATION] New Order #${order_number}`);
+    console.log(`Dynamic Recipient List (${recipientEmails.length}):`, recipientEmails);
+
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
       const emailHtml = `
-        <div style="font-family: sans-serif; padding: 20px; color: #141414;">
-          <h2 style="color: #c5a059;">🚨 Nouvelle Commande Eureka Beauty !</h2>
-          <p>Une nouvelle commande vient d'être créée sur le site :</p>
-          <ul>
-            <li><strong>Numéro de commande :</strong> #${order_number}</li>
-            <li><strong>Client :</strong> ${first_name} ${last_name}</li>
-            <li><strong>Montant Total :</strong> ${Number(total_xof).toLocaleString()} XOF</li>
-            <li><strong>Téléphone :</strong> ${phone}</li>
-            <li><strong>Ville :</strong> ${city}</li>
-          </ul>
-          <p><a href="https://eureka-beauty.vercel.app/admin/orders" style="background-color: #c5a059; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">Voir la commande dans l'Admin</a></p>
+        <div style="font-family: sans-serif; padding: 24px; color: #141414; background-color: #faf7f2; border-radius: 12px; border: 1px solid #e2d7c5;">
+          <h2 style="color: #c5a059; font-size: 22px; margin-bottom: 8px;">🚨 Nouvelle Commande Eureka Beauty !</h2>
+          <p style="font-size: 14px; color: #555;">Une nouvelle commande vient d'être enregistrée sur la boutique :</p>
+          <div style="background-color: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #e0e0e0; margin: 16px 0;">
+            <p style="margin: 4px 0;"><strong>• Numéro de Commande :</strong> #${order_number}</p>
+            <p style="margin: 4px 0;"><strong>• Client :</strong> ${first_name} ${last_name}</p>
+            <p style="margin: 4px 0;"><strong>• Montant Total :</strong> <span style="color: #c5a059; font-weight: bold;">${Number(total_xof).toLocaleString()} XOF</span></p>
+            <p style="margin: 4px 0;"><strong>• Téléphone :</strong> ${phone}</p>
+            <p style="margin: 4px 0;"><strong>• Ville de livraison :</strong> ${city}</p>
+          </div>
+          <p><a href="https://eureka-beauty.vercel.app/admin/orders" style="display: inline-block; background-color: #c5a059; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px;">Gérer les commandes dans l'Admin</a></p>
         </div>
       `;
 
@@ -38,8 +57,8 @@ export async function POST(request: Request) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Eureka Beauty <orders@eurekabeauty.com>',
-          to: [adminEmail, deliveryEmail],
+          from: 'Eureka Beauty Orders <orders@eurekabeauty.com>',
+          to: recipientEmails,
           subject: `🚨 Nouvelle Commande #${order_number} - ${first_name} ${last_name}`,
           html: emailHtml,
         }),
@@ -48,12 +67,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Notification e-mail envoyée avec succès',
-      recipients: [adminEmail, deliveryEmail]
+      message: 'Notifications e-mail envoyées aux comptes administrateurs et livreurs.',
+      recipients: recipientEmails
     });
 
   } catch (error: any) {
-    console.error('Error processing order email alert:', error);
+    console.error('Email notification dispatch error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
