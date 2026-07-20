@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
           `✅ E-mail de test envoyé avec succès via Resend aux destinataires (${(result.recipients || []).join(', ')}) !`
         );
       } else if (result?.resendStatus === 'not_configured') {
-        alert('⚠️ Clé NEXT_PUBLIC_RESEND_API_KEY non configurée dans Vercel. Veuillez ajouter la variable NEXT_PUBLIC_RESEND_API_KEY dans Vercel > Settings > Environment Variables.');
+        alert('⚠️ Clé RESEND_API_KEY non configurée sur Vercel. Veuillez vous assurer que la variable RESEND_API_KEY est enregistrée dans Vercel > Settings > Environment Variables puis relancez un déploiement.');
       } else if (result?.resendResponse) {
         alert(`❌ Réponse API Resend :\n${JSON.stringify(result.resendResponse, null, 2)}`);
       } else {
