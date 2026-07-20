@@ -1175,7 +1175,7 @@ class MockDB {
   }
 
   getUsers(): Customer[] {
-    const staticUsers: Customer[] = [
+    let staticUsers: Customer[] = [
       {
         id: 'cust-admin-001',
         first_name: 'Directrice',
@@ -1199,6 +1199,9 @@ class MockDB {
     ];
     
     if (typeof window !== 'undefined') {
+      const deletedStatic = JSON.parse(localStorage.getItem('eb_deleted_static_users') || '[]');
+      staticUsers = staticUsers.filter(u => !deletedStatic.includes(u.id));
+
       const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
       const registeredList = Object.keys(registered).map(email => ({
         id: registered[email].id,
@@ -1210,18 +1213,78 @@ class MockDB {
         loyalty_points: registered[email].loyalty_points || 0,
         role: registered[email].role || 'customer'
       }));
+
+      const registeredIds = new Set(registeredList.map(u => u.id));
+      staticUsers = staticUsers.filter(u => !registeredIds.has(u.id));
+
       return [...staticUsers, ...registeredList];
     }
     return staticUsers;
   }
 
-  updateUserRole(userId: string, role: 'customer' | 'admin' | 'delivery') {
+  addUser(userData: Partial<Customer> & { password?: string }): Customer {
+    const newId = `user-${Date.now()}`;
+    const newUser: Customer = {
+      id: newId,
+      first_name: userData.first_name || 'Utilisateur',
+      last_name: userData.last_name || '',
+      email: userData.email || `user_${Date.now()}@eureka.com`,
+      phone: userData.phone || '',
+      whatsapp: userData.whatsapp || userData.phone || '',
+      loyalty_points: Number(userData.loyalty_points || 0),
+      role: userData.role || 'customer',
+    };
+
+    if (typeof window !== 'undefined') {
+      const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+      registered[newUser.email] = {
+        ...newUser,
+        password: userData.password || 'password123',
+      };
+      localStorage.setItem('eb_users_db', JSON.stringify(registered));
+    }
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('customers').insert([{
+        id: newUser.id,
+        first_name: newUser.first_name,
+        last_name: newUser.last_name,
+        email: newUser.email,
+        phone: newUser.phone,
+        whatsapp: newUser.whatsapp,
+        loyalty_points: newUser.loyalty_points,
+        role: newUser.role
+      }]).then(({ error }) => {
+        if (error) console.error('Supabase addUser error:', error);
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+    }
+
+    return newUser;
+  }
+
+  updateUser(userId: string, data: Partial<Customer>): Customer | null {
+    let updatedUser: Customer | null = null;
+
     if (typeof window !== 'undefined') {
       const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
       const email = Object.keys(registered).find(k => registered[k].id === userId);
+      
       if (email) {
-        registered[email].role = role;
+        registered[email] = {
+          ...registered[email],
+          ...data
+        };
+        if (data.email && data.email !== email) {
+          const oldData = registered[email];
+          delete registered[email];
+          registered[data.email] = oldData;
+        }
         localStorage.setItem('eb_users_db', JSON.stringify(registered));
+        updatedUser = registered[data.email || email];
       } else {
         const staticUsers = [
           {
@@ -1232,7 +1295,7 @@ class MockDB {
             phone: '+228 93866752',
             whatsapp: '+228 93866752',
             loyalty_points: 9999,
-            role: 'admin'
+            role: 'admin' as const
           },
           {
             id: 'cust-customer-001',
@@ -1242,39 +1305,61 @@ class MockDB {
             phone: '+221 77 123 45 67',
             whatsapp: '+221 77 123 45 67',
             loyalty_points: 150,
-            role: 'customer'
+            role: 'customer' as const
           }
         ];
         const staticUser = staticUsers.find(u => u.id === userId);
         if (staticUser) {
-          registered[staticUser.email] = {
-            ...staticUser,
-            role,
-            password: staticUser.role === 'admin' ? 'admin123' : 'customer123'
-          };
+          const merged = { ...staticUser, ...data, password: 'admin123' };
+          registered[merged.email] = merged;
           localStorage.setItem('eb_users_db', JSON.stringify(registered));
-        }
-      }
-
-      const sessionStr = localStorage.getItem('eb_session');
-      if (sessionStr) {
-        const sessionUser = JSON.parse(sessionStr);
-        if (sessionUser.id === userId) {
-          sessionUser.role = role;
-          localStorage.setItem('eb_session', JSON.stringify(sessionUser));
+          updatedUser = merged;
         }
       }
     }
 
     if (HAS_SUPABASE_CREDS) {
-      supabase.from('customers').update({ role }).eq('id', userId).then(({ error }) => {
-        if (error) console.error('Supabase customer role update error:', error);
+      supabase.from('customers').update(data).eq('id', userId).then(({ error }) => {
+        if (error) console.error('Supabase updateUser error:', error);
       });
     }
-    
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
     }
+
+    return updatedUser;
+  }
+
+  deleteUser(userId: string): boolean {
+    if (typeof window !== 'undefined') {
+      const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
+      const email = Object.keys(registered).find(k => registered[k].id === userId);
+      if (email) {
+        delete registered[email];
+        localStorage.setItem('eb_users_db', JSON.stringify(registered));
+      } else {
+        const deletedStatic = JSON.parse(localStorage.getItem('eb_deleted_static_users') || '[]');
+        deletedStatic.push(userId);
+        localStorage.setItem('eb_deleted_static_users', JSON.stringify(deletedStatic));
+      }
+    }
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('customers').delete().eq('id', userId).then(({ error }) => {
+        if (error) console.error('Supabase deleteUser error:', error);
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+    }
+
+    return true;
+  }
+
+  updateUserRole(userId: string, role: 'customer' | 'admin' | 'delivery') {
+    this.updateUser(userId, { role });
   }
 }
 
