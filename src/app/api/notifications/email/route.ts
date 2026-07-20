@@ -38,7 +38,9 @@ export async function POST(request: Request) {
     let resendResponse = null;
 
     if (resendApiKey) {
-      const fromEmail = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>';
+      const fromEmail = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || 
+                        process.env.RESEND_FROM_EMAIL || 
+                        'Eureka Beauty <onboarding@resend.dev>';
       
       const emailHtml = `
         <div style="font-family: sans-serif; padding: 24px; color: #141414; background-color: #faf7f2; border-radius: 12px; border: 1px solid #e2d7c5;">
