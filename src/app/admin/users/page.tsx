@@ -156,6 +156,38 @@ export default function AdminUsersPage() {
     return matchesSearch && matchesRole;
   });
 
+  const [testingEmail, setTestingEmail] = useState(false);
+
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const res = await fetch('/api/notifications/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_number: 'TEST-1001',
+          first_name: 'Test',
+          last_name: 'Admin',
+          total_xof: 25000,
+          phone: '+228 90 00 00 00',
+          city: 'Lomé / Abidjan',
+        }),
+      });
+      const data = await res.json();
+      if (data.resendStatus === 'sent') {
+        setSuccessMsg(`✅ E-mail de test envoyé avec succès via Resend à (${data.recipients.join(', ')}) !`);
+      } else if (data.resendStatus === 'not_configured') {
+        alert('⚠️ Clé RESEND_API_KEY non détectée sur Vercel. Veuillez ajouter RESEND_API_KEY dans Vercel > Settings > Environment Variables.');
+      } else {
+        alert(`❌ Erreur Resend API :\n${JSON.stringify(data.resendResponse, null, 2)}`);
+      }
+    } catch (e: any) {
+      alert(`Erreur: ${e.message}`);
+    } finally {
+      setTestingEmail(false);
+    }
+  };
+
   return (
     <div className="space-y-8 fade-in text-white">
       
@@ -168,12 +200,23 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreateModal}
-          className="bg-gold hover:bg-gold-hover text-dark font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 uppercase tracking-wider shadow-lg shrink-0"
-        >
-          <Plus size={16} /> Nouveau Compte
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleTestEmail}
+            disabled={testingEmail}
+            className="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-2 border border-white/10 disabled:opacity-50"
+          >
+            <Mail size={15} className="text-gold" />
+            {testingEmail ? 'Test en cours...' : 'Tester Email Resend'}
+          </button>
+          
+          <button
+            onClick={handleOpenCreateModal}
+            className="bg-gold hover:bg-gold-hover text-dark font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 uppercase tracking-wider shadow-lg"
+          >
+            <Plus size={16} /> Nouveau Compte
+          </button>
+        </div>
       </div>
 
       {successMsg && (

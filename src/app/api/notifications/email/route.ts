@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
 
+export const dynamic = 'force-static';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -34,7 +36,12 @@ export async function POST(request: Request) {
     console.log(`Dynamic Recipient List (${recipientEmails.length}):`, recipientEmails);
 
     const resendApiKey = process.env.RESEND_API_KEY;
+    let resendStatus = 'not_configured';
+    let resendResponse = null;
+
     if (resendApiKey) {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>';
+      
       const emailHtml = `
         <div style="font-family: sans-serif; padding: 24px; color: #141414; background-color: #faf7f2; border-radius: 12px; border: 1px solid #e2d7c5;">
           <h2 style="color: #c5a059; font-size: 22px; margin-bottom: 8px;">🚨 Nouvelle Commande Eureka Beauty !</h2>
@@ -50,24 +57,35 @@ export async function POST(request: Request) {
         </div>
       `;
 
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'Eureka Beauty Orders <orders@eurekabeauty.com>',
-          to: recipientEmails,
-          subject: `🚨 Nouvelle Commande #${order_number} - ${first_name} ${last_name}`,
-          html: emailHtml,
-        }),
-      });
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: recipientEmails,
+            subject: `🚨 Nouvelle Commande #${order_number} - ${first_name} ${last_name}`,
+            html: emailHtml,
+          }),
+        });
+
+        resendResponse = await res.json();
+        resendStatus = res.ok ? 'sent' : 'error';
+        console.log(`[RESEND API RESPONSE] Status: ${res.status}`, resendResponse);
+      } catch (err: any) {
+        resendStatus = 'exception';
+        resendResponse = { error: err.message };
+        console.error('Resend fetch exception:', err);
+      }
     }
 
     return NextResponse.json({ 
-      success: true, 
-      message: 'Notifications e-mail envoyées aux comptes administrateurs et livreurs.',
+      success: resendStatus === 'sent' || resendStatus === 'not_configured', 
+      resendStatus,
+      resendResponse,
       recipients: recipientEmails
     });
 
@@ -75,4 +93,13 @@ export async function POST(request: Request) {
     console.error('Email notification dispatch error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    status: 'online',
+    hasResendKey: !!process.env.RESEND_API_KEY,
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>',
+    adminEmailEnv: process.env.ADMIN_NOTIFICATION_EMAIL || 'Non défini',
+  });
 }
