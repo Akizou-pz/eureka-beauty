@@ -33,12 +33,12 @@ export async function POST(request: Request) {
     console.log(`[EMAIL NOTIFICATION] New Order #${order_number}`);
     console.log(`Dynamic Recipient List (${recipientEmails.length}):`, recipientEmails);
 
-    const resendApiKey = process.env.RESEND_API_KEY;
+    const resendApiKey = process.env.NEXT_PUBLIC_RESEND_API_KEY || process.env.RESEND_API_KEY;
     let resendStatus = 'not_configured';
     let resendResponse = null;
 
     if (resendApiKey) {
-      const fromEmail = process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>';
+      const fromEmail = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>';
       
       const emailHtml = `
         <div style="font-family: sans-serif; padding: 24px; color: #141414; background-color: #faf7f2; border-radius: 12px; border: 1px solid #e2d7c5;">
@@ -96,8 +96,8 @@ export async function POST(request: Request) {
 export async function GET() {
   return NextResponse.json({
     status: 'online',
-    hasResendKey: !!process.env.RESEND_API_KEY,
-    fromEmail: process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>',
+    hasResendKey: !!(process.env.NEXT_PUBLIC_RESEND_API_KEY || process.env.RESEND_API_KEY),
+    fromEmail: process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'Eureka Beauty <onboarding@resend.dev>',
     adminEmailEnv: process.env.ADMIN_NOTIFICATION_EMAIL || 'Non défini',
   });
 }
