@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
 
-export const dynamic = 'force-static';
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
