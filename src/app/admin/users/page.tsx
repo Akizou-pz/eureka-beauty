@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db, Customer } from '@/lib/db';
+import { sendOrderEmailAlert } from '@/lib/notifications';
 import { 
   Search, 
   UserCheck, 
@@ -161,25 +162,46 @@ export default function AdminUsersPage() {
   const handleTestEmail = async () => {
     setTestingEmail(true);
     try {
-      const res = await fetch('/api/notifications/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let currentKey =
+        (typeof window !== 'undefined' ? localStorage.getItem('eb_resend_key') : '') ||
+        process.env.NEXT_PUBLIC_RESEND_API_KEY ||
+        process.env.RESEND_API_KEY ||
+        '';
+
+      if (!currentKey) {
+        const inputKey = window.prompt(
+          "Veuillez coller votre clé API Resend (ex: re_123456789) pour tester l'envoi d'e-mails :"
+        );
+        if (!inputKey) {
+          setTestingEmail(false);
+          return;
+        }
+        currentKey = inputKey.trim();
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eb_resend_key', currentKey);
+        }
+      }
+
+      const result = await sendOrderEmailAlert(
+        {
           order_number: 'TEST-1001',
           first_name: 'Test',
           last_name: 'Admin',
           total_xof: 25000,
           phone: '+228 90 00 00 00',
           city: 'Lomé / Abidjan',
-        }),
-      });
-      const data = await res.json();
-      if (data.resendStatus === 'sent') {
-        setSuccessMsg(`✅ E-mail de test envoyé avec succès via Resend à (${data.recipients.join(', ')}) !`);
-      } else if (data.resendStatus === 'not_configured') {
-        alert('⚠️ Clé RESEND_API_KEY non détectée sur Vercel. Veuillez ajouter RESEND_API_KEY dans Vercel > Settings > Environment Variables.');
+        },
+        currentKey
+      );
+
+      if (result?.success) {
+        setSuccessMsg(
+          `✅ E-mail de test envoyé avec succès via Resend aux destinataires (${(result.recipients || []).join(', ')}) !`
+        );
+      } else if (result?.resendResponse) {
+        alert(`❌ Réponse API Resend :\n${JSON.stringify(result.resendResponse, null, 2)}`);
       } else {
-        alert(`❌ Erreur Resend API :\n${JSON.stringify(data.resendResponse, null, 2)}`);
+        alert(`❌ Résultat d'envoi d'e-mail : ${result?.error || result?.message || 'Veuillez vérifier la clé Resend'}`);
       }
     } catch (e: any) {
       alert(`Erreur: ${e.message}`);
