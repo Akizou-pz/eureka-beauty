@@ -6,6 +6,7 @@ import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 interface AuthContextType {
   user: Customer | null;
@@ -14,8 +15,8 @@ interface AuthContextType {
   register: (data: Omit<Customer, 'id' | 'loyalty_points' | 'role'> & { password?: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (updates: Partial<Customer>) => void;
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  signInWithFacebook: () => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string; role?: string; redirectUrl?: string }>;
+  signInWithFacebook: () => Promise<{ success: boolean; error?: string; role?: string; redirectUrl?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Synchronize database customer profile from Supabase Auth details
-  const syncUserSession = async (authUser: any) => {
+  const syncUserSession = async (authUser: any): Promise<Customer | null> => {
     try {
       let { data: profile } = await supabase
         .from('customers')
@@ -61,18 +62,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone: authUser.phone || '',
           whatsapp: '',
           loyalty_points: 50,
-          role: 'customer',
+          role: authUser.email?.toLowerCase().includes('admin') ? 'admin' : 'customer',
         };
 
         await supabase.from('customers').insert([newCustomer]);
         setUser(newCustomer);
         localStorage.setItem('eb_session', JSON.stringify(newCustomer));
+        return newCustomer;
       } else {
         setUser(profile);
         localStorage.setItem('eb_session', JSON.stringify(profile));
+        return profile;
       }
     } catch (e) {
       console.error('Failed to sync auth user to database:', e);
+      return null;
     }
   };
 
@@ -398,21 +402,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return `${window.location.origin}/dashboard`;
   };
 
-  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string; role?: string; redirectUrl?: string }> => {
     if (HAS_SUPABASE_CREDS) {
       if (Capacitor.isNativePlatform()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: 'com.eurekabeauty.app://auth/callback',
-            skipBrowserRedirect: true,
+        try {
+          // Native Android / iOS Google Sign-In prompt directly inside the app
+          const googleUser = await GoogleAuth.signIn();
+          const idToken = googleUser.authentication?.idToken;
+
+          if (!idToken) {
+            return { success: false, error: 'Jeton de connexion Google introuvable.' };
           }
-        });
-        if (error) return { success: false, error: error.message };
-        if (data?.url) {
-          await Browser.open({ url: data.url });
+
+          const { data, error } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: idToken,
+          });
+
+          if (error) return { success: false, error: error.message };
+
+          if (data.user) {
+            const profile = await syncUserSession(data.user);
+            const role = profile?.role || 'customer';
+            const redirectUrl = role === 'admin' ? '/admin' : role === 'delivery' ? '/admin/orders' : '/dashboard';
+            return { success: true, role, redirectUrl };
+          }
+
+          return { success: true };
+        } catch (err: any) {
+          console.error('Native Google Sign-In note:', err);
+          // Fallback to In-App Browser tab
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: 'com.eurekabeauty.app://auth/callback',
+              skipBrowserRedirect: true,
+            }
+          });
+          if (error) return { success: false, error: error.message };
+          if (data?.url) {
+            await Browser.open({ url: data.url });
+          }
+          return { success: true };
         }
-        return { success: true };
       } else {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -439,7 +471,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(googleUser);
           localStorage.setItem('eb_session', JSON.stringify(googleUser));
-          resolve({ success: true });
+          resolve({ success: true, role: 'customer', redirectUrl: '/dashboard' });
         }, 800);
       });
     }

@@ -145,7 +145,17 @@ function CustomerDashboard() {
     setSocialLoading(true);
     const res = await signInWithGoogle();
     setSocialLoading(false);
-    if (!res.success && res.error) {
+    if (res.success) {
+      if (res.redirectUrl) {
+        router.push(res.redirectUrl);
+      } else if (res.role === 'admin') {
+        router.push('/admin');
+      } else if (res.role === 'delivery') {
+        router.push('/admin/orders');
+      } else {
+        setActiveTab('orders');
+      }
+    } else if (res.error) {
       setErrorMsg(res.error);
     }
   };
@@ -155,7 +165,17 @@ function CustomerDashboard() {
     setSocialLoading(true);
     const res = await signInWithFacebook();
     setSocialLoading(false);
-    if (!res.success && res.error) {
+    if (res.success) {
+      if (res.redirectUrl) {
+        router.push(res.redirectUrl);
+      } else if (res.role === 'admin') {
+        router.push('/admin');
+      } else if (res.role === 'delivery') {
+        router.push('/admin/orders');
+      } else {
+        setActiveTab('orders');
+      }
+    } else if (res.error) {
       setErrorMsg(res.error);
     }
   };
