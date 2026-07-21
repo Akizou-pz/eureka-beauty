@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { db, Order } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { notifyNewOrder } from '@/lib/notifications';
-import { ClipboardList, Search, Eye, Edit, Printer, CheckCircle, Clock, X, AlertTriangle } from 'lucide-react';
+import { generateInvoicePDF } from '@/lib/pdfGenerator';
+import { ClipboardList, Search, Eye, Edit, Printer, Download, CheckCircle, Clock, X, AlertTriangle } from 'lucide-react';
 
 export default function AdminOrdersPage() {
   const { formatPrice } = useLangCurr();
@@ -74,13 +75,17 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handlePrint = (ord: Order) => {
-    setSelectedOrder(ord);
+  const handleDownloadPDF = (order: Order) => {
+    generateInvoicePDF(order, formatPrice);
+  };
+
+  const handlePrint = (order: Order) => {
+    setSelectedOrder(order);
     setIsPrinting(true);
     setTimeout(() => {
       window.print();
       setIsPrinting(false);
-    }, 150);
+    }, 300);
   };
 
   // Filter orders by search input
@@ -279,6 +284,13 @@ export default function AdminOrdersPage() {
                         <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2 justify-end">
                             <button
+                              onClick={() => handleDownloadPDF(ord)}
+                              className="w-8 h-8 rounded bg-gold/10 hover:bg-gold hover:text-white transition flex items-center justify-center text-gold border border-gold/20"
+                              title="Télécharger PDF"
+                            >
+                              <Download size={12} />
+                            </button>
+                            <button
                               onClick={() => setSelectedOrder(ord)}
                               className="w-8 h-8 rounded bg-white/5 hover:bg-white/10 transition flex items-center justify-center text-white/60"
                               title="Voir Détails"
@@ -314,12 +326,21 @@ export default function AdminOrdersPage() {
                   <h3 className="font-serif-display font-semibold text-sm text-white">Détails Commande</h3>
                   <p className="text-[10px] text-gold mt-0.5">{selectedOrder.order_number}</p>
                 </div>
-                <button
-                  onClick={() => handlePrint(selectedOrder)}
-                  className="bg-white/5 hover:bg-gold hover:text-white border border-white/10 rounded-lg p-2 transition flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-white"
-                >
-                  <Printer size={12} /> Imprimer
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleDownloadPDF(selectedOrder)}
+                    className="bg-gold hover:bg-gold-hover text-dark font-bold border border-gold rounded-lg px-3 py-2 transition flex items-center gap-1.5 text-[10px] uppercase tracking-wider shadow"
+                  >
+                    <Download size={12} /> Télécharger PDF
+                  </button>
+                  <button
+                    onClick={() => handlePrint(selectedOrder)}
+                    className="bg-white/5 hover:bg-gold hover:text-white border border-white/10 rounded-lg p-2 transition flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-white"
+                    title="Imprimer"
+                  >
+                    <Printer size={12} />
+                  </button>
+                </div>
               </div>
 
               {/* Status selectors */}
