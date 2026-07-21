@@ -80,6 +80,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const redirectByRole = (role?: string) => {
+    if (typeof window === 'undefined') return;
+    const target = role === 'admin' ? '/admin' : role === 'delivery' ? '/admin/orders' : '/dashboard';
+    if (window.location.pathname !== target) {
+      window.location.href = target;
+    }
+  };
+
   // Load user from localStorage on mount and register Supabase auth listeners
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -99,19 +107,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           if (event.url.includes('access_token') || event.url.includes('code=') || event.url.includes('auth/callback')) {
             try {
-              const cleanUrlStr = event.url.replace('com.eurekabeauty.app://', 'https://eureka-beauty.com/');
+              let cleanUrlStr = event.url;
+              if (cleanUrlStr.startsWith('com.eurekabeauty.app://')) {
+                cleanUrlStr = cleanUrlStr.replace('com.eurekabeauty.app://', 'https://eureka-beauty.com/');
+              }
               const url = new URL(cleanUrlStr);
+
+              // 1. Check PKCE code in searchParams (?code=...)
               if (url.searchParams.has('code')) {
                 const code = url.searchParams.get('code');
                 if (code && HAS_SUPABASE_CREDS) {
                   const { data: sessionData } = await supabase.auth.exchangeCodeForSession(code);
                   if (sessionData?.user) {
-                    await syncUserSession(sessionData.user);
+                    const profile = await syncUserSession(sessionData.user);
+                    redirectByRole(profile?.role);
                   }
                 }
-              } else if (cleanUrlStr.includes('#')) {
-                const hash = cleanUrlStr.split('#')[1];
-                const params = new URLSearchParams(hash);
+              } 
+              // 2. Check Implicit Flow tokens in hash (#access_token=...)
+              else if (cleanUrlStr.includes('#')) {
+                const hashContent = cleanUrlStr.split('#')[1];
+                const params = new URLSearchParams(hashContent);
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
                 if (accessToken && HAS_SUPABASE_CREDS) {
@@ -120,7 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     refresh_token: refreshToken || '',
                   });
                   if (sessionData?.user) {
-                    await syncUserSession(sessionData.user);
+                    const profile = await syncUserSession(sessionData.user);
+                    redirectByRole(profile?.role);
                   }
                 }
               }
@@ -133,16 +150,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (HAS_SUPABASE_CREDS) {
         // Get active auth session
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
           if (session?.user) {
-            syncUserSession(session.user);
+            const profile = await syncUserSession(session.user);
+            if (profile && window.location.pathname === '/') {
+              redirectByRole(profile.role);
+            }
           }
         });
 
         // Listen for authentication changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (session?.user) {
-            await syncUserSession(session.user);
+            const profile = await syncUserSession(session.user);
+            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && profile) {
+              redirectByRole(profile.role);
+            }
           } else if (event === 'SIGNED_OUT') {
             setUser(null);
             localStorage.removeItem('eb_session');
