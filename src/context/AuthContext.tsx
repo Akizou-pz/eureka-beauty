@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Customer } from '@/lib/db';
 import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 interface AuthContextType {
   user: Customer | null;
@@ -79,6 +81,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const stored = localStorage.getItem('eb_session');
       if (stored) {
         setUser(JSON.parse(stored));
+      }
+
+      // Handle native Android / iOS deep link return from Google/Facebook login
+      if (Capacitor.isNativePlatform()) {
+        App.addListener('appUrlOpen', async (event) => {
+          console.log('🔗 Native App opened via deep link:', event.url);
+          if (event.url.includes('access_token') || event.url.includes('code=') || event.url.includes('auth/callback')) {
+            try {
+              const cleanUrlStr = event.url.replace('com.eurekabeauty.app://', 'https://eureka-beauty.com/');
+              const url = new URL(cleanUrlStr);
+              if (url.searchParams.has('code')) {
+                const code = url.searchParams.get('code');
+                if (code && HAS_SUPABASE_CREDS) {
+                  const { data: sessionData } = await supabase.auth.exchangeCodeForSession(code);
+                  if (sessionData?.user) {
+                    await syncUserSession(sessionData.user);
+                  }
+                }
+              } else if (cleanUrlStr.includes('#')) {
+                const hash = cleanUrlStr.split('#')[1];
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+                if (accessToken && HAS_SUPABASE_CREDS) {
+                  const { data: sessionData } = await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken || '',
+                  });
+                  if (sessionData?.user) {
+                    await syncUserSession(sessionData.user);
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Error handling deep link OAuth callback:', err);
+            }
+          }
+        });
       }
 
       if (HAS_SUPABASE_CREDS) {
@@ -344,12 +384,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const getRedirectUrl = () => {
+    if (typeof window === 'undefined') return '';
+    if (Capacitor.isNativePlatform()) {
+      return 'com.eurekabeauty.app://auth/callback';
+    }
+    return `${window.location.origin}/dashboard`;
+  };
+
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     if (HAS_SUPABASE_CREDS) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: getRedirectUrl()
         }
       });
       if (error) return { success: false, error: error.message };
@@ -381,7 +429,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: getRedirectUrl()
         }
       });
       if (error) return { success: false, error: error.message };
