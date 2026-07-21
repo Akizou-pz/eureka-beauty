@@ -53,7 +53,7 @@ export async function POST(request: Request) {
             <p style="margin: 4px 0;"><strong>• Téléphone :</strong> ${phone}</p>
             <p style="margin: 4px 0;"><strong>• Ville de livraison :</strong> ${city}</p>
           </div>
-          <p><a href="https://eureka-beauty.vercel.app/admin/orders" style="display: inline-block; background-color: #c5a059; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px;">Gérer les commandes dans l'Admin</a></p>
+          <p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eureka-beauty.com'}/admin/orders" style="display: inline-block; background-color: #c5a059; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px;">Gérer les commandes dans l'Admin</a></p>
         </div>
       `;
 
