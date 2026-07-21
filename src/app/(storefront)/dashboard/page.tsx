@@ -106,11 +106,24 @@ function CustomerDashboard() {
     };
     window.addEventListener('storage', handleStorage);
 
+    const handleUserLogin = (e: any) => {
+      const role = e.detail?.role;
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'delivery') {
+        setActiveTab('delivery-orders');
+      } else {
+        setActiveTab('orders');
+      }
+    };
+    window.addEventListener('eb_user_login', handleUserLogin);
+
     return () => {
       window.removeEventListener('supabase_sync_complete', loadDeliveryOrders);
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('eb_user_login', handleUserLogin);
     };
-  }, [user]);
+  }, [user, router]);
 
   const handleDeliveryStatusChange = (orderId: string, status: Order['order_status']) => {
     let cancelReason = undefined;

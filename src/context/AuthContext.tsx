@@ -26,7 +26,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Synchronize database customer profile from Supabase Auth details
-  const syncUserSession = async (authUser: any): Promise<Customer | null> => {
+  const syncUserSession = async (authUser: any): Promise<Customer> => {
+    const nameParts = (authUser.user_metadata?.full_name || authUser.email || '').split(' ');
+    const firstName = authUser.user_metadata?.first_name || nameParts[0] || 'Client';
+    const lastName = authUser.user_metadata?.last_name || nameParts.slice(1).join(' ') || 'Eureka';
+    
+    let fallbackProfile: Customer = {
+      id: authUser.id,
+      first_name: firstName,
+      last_name: lastName,
+      email: authUser.email || '',
+      phone: authUser.phone || '',
+      whatsapp: '',
+      loyalty_points: 50,
+      role: authUser.email?.toLowerCase().includes('admin') ? 'admin' : 'customer',
+    };
+
     try {
       let { data: profile } = await supabase
         .from('customers')
@@ -43,47 +58,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (profileByEmail) {
           profile = profileByEmail;
-          await supabase.from('customers').update({ id: authUser.id }).eq('email', authUser.email);
-          profile.id = authUser.id;
+          try { await supabase.from('customers').update({ id: authUser.id }).eq('email', authUser.email); } catch (e) {}
         }
       }
 
       if (!profile) {
-        // User exists in auth but doesn't have a public.customers row yet (first-time social signup)
-        const nameParts = (authUser.user_metadata?.full_name || '').split(' ');
-        const firstName = authUser.user_metadata?.first_name || nameParts[0] || 'Client';
-        const lastName = authUser.user_metadata?.last_name || nameParts.slice(1).join(' ') || 'Eureka';
-        
-        const newCustomer: Customer = {
-          id: authUser.id,
-          first_name: firstName,
-          last_name: lastName,
-          email: authUser.email || '',
-          phone: authUser.phone || '',
-          whatsapp: '',
-          loyalty_points: 50,
-          role: authUser.email?.toLowerCase().includes('admin') ? 'admin' : 'customer',
-        };
-
-        await supabase.from('customers').insert([newCustomer]);
-        setUser(newCustomer);
-        localStorage.setItem('eb_session', JSON.stringify(newCustomer));
-        return newCustomer;
-      } else {
-        setUser(profile);
-        localStorage.setItem('eb_session', JSON.stringify(profile));
-        return profile;
+        try { await supabase.from('customers').insert([fallbackProfile]); } catch (e) {}
+        profile = fallbackProfile;
       }
+
+      setUser(profile);
+      localStorage.setItem('eb_session', JSON.stringify(profile));
+      return profile;
     } catch (e) {
-      console.error('Failed to sync auth user to database:', e);
-      return null;
+      console.warn('Database sync warning (using fallback session):', e);
+      setUser(fallbackProfile);
+      localStorage.setItem('eb_session', JSON.stringify(fallbackProfile));
+      return fallbackProfile;
     }
   };
 
   const redirectByRole = (role?: string) => {
     if (typeof window === 'undefined') return;
-    const target = role === 'admin' ? '/admin' : role === 'delivery' ? '/admin/orders' : '/dashboard';
-    if (window.location.pathname !== target) {
+    const target = role === 'admin' ? '/admin/' : role === 'delivery' ? '/admin/orders/' : '/dashboard/';
+    
+    // Notify UI components of login
+    window.dispatchEvent(new CustomEvent('eb_user_login', { detail: { role } }));
+
+    if (window.location.pathname !== target && window.location.pathname !== target.slice(0, -1)) {
       window.location.href = target;
     }
   };
