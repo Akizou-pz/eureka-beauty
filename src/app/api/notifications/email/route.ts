@@ -37,6 +37,10 @@ export async function POST(request: Request) {
     let resendStatus = 'not_configured';
     let resendResponse = null;
 
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const baseUrl = host ? `${protocol}://${host}` : 'https://eureka-beauty.com';
+
     if (resendApiKey) {
       const fromEmail = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || 
                         process.env.RESEND_FROM_EMAIL || 
@@ -53,7 +57,7 @@ export async function POST(request: Request) {
             <p style="margin: 4px 0;"><strong>• Téléphone :</strong> ${phone}</p>
             <p style="margin: 4px 0;"><strong>• Ville de livraison :</strong> ${city}</p>
           </div>
-          <p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eureka-beauty.com'}/admin/orders" style="display: inline-block; background-color: #c5a059; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px;">Gérer les commandes dans l'Admin</a></p>
+          <p><a href="${baseUrl}/admin/orders" style="display: inline-block; background-color: #c5a059; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 13px;">Gérer les commandes dans l'Admin</a></p>
         </div>
       `;
 
