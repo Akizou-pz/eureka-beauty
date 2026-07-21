@@ -42,8 +42,7 @@ function CheckoutForm() {
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
   // Form Fields
-  const [firstName, setFirstName] = useState(user?.first_name || '');
-  const [lastName, setLastName] = useState(user?.last_name || '');
+  const [fullName, setFullName] = useState(user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
@@ -65,7 +64,7 @@ function CheckoutForm() {
   useEffect(() => {
     if (placedOrder && placedOrder.payment_method === 'WhatsApp') {
       const productsList = placedOrder.items
-        .map((item) => `* ${item.product_name} x${item.quantity} — ${formatPrice(item.unit_price_xof * item.quantity)}`)
+         .map((item) => `* ${item.product_name} x${item.quantity} — ${formatPrice(item.unit_price_xof * item.quantity)}`)
         .join('\n');
 
       const rawMessage = `Nouvelle commande ✨ Eureka Beauty Africa
@@ -109,8 +108,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
   // Synchronize Auth user details if logged in
   useEffect(() => {
     if (user) {
-      setFirstName(user.first_name || '');
-      setLastName(user.last_name || '');
+      setFullName(`${user.first_name || ''} ${user.last_name || ''}`.trim());
       setEmail(user.email || '');
       setPhone(user.phone || '');
       setWhatsapp(user.whatsapp || '');
@@ -168,7 +166,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
-    if (!firstName || !lastName || !email || !phone || !addressLine) {
+    if (!fullName || !phone || !addressLine) {
       alert('Veuillez remplir tous les champs obligatoires.');
       return;
     }
@@ -191,12 +189,16 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
       total_price_xof: item.price_xof * (1 - item.discount_percent / 100) * item.quantity,
     }));
 
+    const nameParts = fullName.trim().split(' ');
+    const resolvedFirstName = nameParts[0] || 'Client';
+    const resolvedLastName = nameParts.slice(1).join(' ') || 'Eureka';
+
     const orderData = {
       customer_id: user?.id || null,
       coupon_id: appliedCoupon?.id || null,
-      first_name: firstName,
-      last_name: lastName,
-      email,
+      first_name: resolvedFirstName,
+      last_name: resolvedLastName,
+      email: email || '',
       phone,
       whatsapp,
       country,
@@ -384,31 +386,18 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
               <span className="text-gold">1.</span> {t('billingDetails')}
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                  {t('firstName')} <span className="text-error">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                  {t('lastName')} <span className="text-error">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
-                />
-              </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                Nom <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Nom et Prénom"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -441,11 +430,10 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
 
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                {t('email')} <span className="text-error">*</span>
+                {t('email')} <span className="text-dark-muted font-normal">(Optionnel)</span>
               </label>
               <input
                 type="email"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
