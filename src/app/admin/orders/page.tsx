@@ -155,12 +155,11 @@ export default function AdminOrdersPage() {
 
         {/* Ordered items Table (Mobile-responsive) */}
         <div className="pt-4 overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse min-w-[500px] sm:min-w-full">
+          <table className="w-full text-left text-xs border-collapse min-w-[320px] sm:min-w-full">
             <thead>
               <tr className="border-b-2 border-black text-black font-bold uppercase tracking-wider text-[10px]">
-                <th className="py-2.5 pr-3 w-5/12">Description du Produit</th>
-                <th className="py-2.5 px-2 w-2/12">SKU</th>
-                <th className="py-2.5 px-2 text-center w-1/12">Qté</th>
+                <th className="py-2.5 pr-3 w-6/12">Description du Produit</th>
+                <th className="py-2.5 px-2 text-center w-2/12">Quantité</th>
                 <th className="py-2.5 px-2 text-right w-2/12">Prix Unitaire</th>
                 <th className="py-2.5 pl-3 text-right w-2/12">Total</th>
               </tr>
@@ -171,7 +170,6 @@ export default function AdminOrdersPage() {
                   <td className="py-3 pr-3 font-bold text-black break-words">
                     {item.product_name}
                   </td>
-                  <td className="py-3 px-2 uppercase text-gray-500 font-mono text-[10px] break-all">{item.sku}</td>
                   <td className="py-3 px-2 text-center font-bold text-black">{item.quantity}</td>
                   <td className="py-3 px-2 text-right text-gray-800 whitespace-nowrap">{formatPrice(item.unit_price_xof)}</td>
                   <td className="py-3 pl-3 text-right font-bold text-black whitespace-nowrap">{formatPrice(item.total_price_xof)}</td>
@@ -487,9 +485,8 @@ export default function AdminOrdersPage() {
           <table className="w-full text-left text-xs border-collapse mt-4">
             <thead>
               <tr className="border-b-2 border-black text-black font-bold uppercase tracking-wider text-[10px]">
-                <th className="py-2 pr-3 w-5/12">Description du Produit</th>
-                <th className="py-2 px-2 w-2/12">SKU</th>
-                <th className="py-2 px-2 text-center w-1/12">Qté</th>
+                <th className="py-2 pr-3 w-6/12">Description du Produit</th>
+                <th className="py-2 px-2 text-center w-2/12">Quantité</th>
                 <th className="py-2 px-2 text-right w-2/12">Prix Unitaire</th>
                 <th className="py-2 pl-3 text-right w-2/12">Total</th>
               </tr>
@@ -498,7 +495,6 @@ export default function AdminOrdersPage() {
               {selectedOrder.items.map((item, idx) => (
                 <tr key={idx}>
                   <td className="py-2.5 pr-3 font-bold text-black">{item.product_name}</td>
-                  <td className="py-2.5 px-2 uppercase text-gray-500 font-mono text-[10px]">{item.sku}</td>
                   <td className="py-2.5 px-2 text-center font-bold">{item.quantity}</td>
                   <td className="py-2.5 px-2 text-right whitespace-nowrap">{formatPrice(item.unit_price_xof)}</td>
                   <td className="py-2.5 pl-3 text-right font-bold whitespace-nowrap">{formatPrice(item.total_price_xof)}</td>
