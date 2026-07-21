@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Order } from './db';
+import { Order, db } from './db';
 
 export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) => string) => {
   const doc = new jsPDF({
@@ -11,7 +11,12 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
 
   const goldColor: [number, number, number] = [197, 160, 89]; // #c5a059
   const darkColor: [number, number, number] = [20, 20, 20];   // #141414
-  const grayColor: [number, number, number] = [100, 100, 100];
+  const grayColor: [number, number, number] = [90, 90, 90];
+
+  // Helper to format currency numbers cleanly for PDF
+  const cleanPrice = (amount: number) => {
+    return formatPrice(amount).replace(/\s+/g, ' ');
+  };
 
   // 1. Header Title
   doc.setFont('helvetica', 'bold');
@@ -37,7 +42,7 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...grayColor);
-  doc.text(`N° Facture : `, 150, 26);
+  doc.text(`N° Facture : `, 145, 26);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...darkColor);
   doc.text(order.order_number, 196, 26, { align: 'right' });
@@ -52,7 +57,7 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   doc.setTextColor(...goldColor);
   doc.text(statusText, 196, 36, { align: 'right' });
 
-  // Divider Line
+  // Gold Divider Line
   doc.setDrawColor(...goldColor);
   doc.setLineWidth(0.5);
   doc.line(14, 41, 196, 41);
@@ -63,7 +68,7 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   const colWidth = 88;
 
   // Facturé à
-  doc.setFillColor(250, 247, 242);
+  doc.setFillColor(252, 250, 246);
   doc.setDrawColor(226, 215, 197);
   doc.roundedRect(14, boxTop, colWidth, boxHeight, 2, 2, 'FD');
 
@@ -84,7 +89,7 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   }
 
   // Adresse d'expédition
-  doc.setFillColor(250, 247, 242);
+  doc.setFillColor(252, 250, 246);
   doc.roundedRect(108, boxTop, colWidth, boxHeight, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
@@ -103,26 +108,43 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
     doc.text(`Note : ${order.delivery_instructions.substring(0, 38)}`, 112, boxTop + 27);
   }
 
-  // 4. Products Table using autoTable
-  const itemsToRender = (order.items && Array.isArray(order.items) && order.items.length > 0)
+  // 4. Products Items Resolution
+  let itemsToRender = (order.items && Array.isArray(order.items) && order.items.length > 0)
     ? order.items
-    : [
-        {
-          id: 'item-fallback',
-          product_id: '',
-          product_name: 'Produits commandés Eureka Beauty',
-          sku: 'EB-PROD',
-          quantity: 1,
-          unit_price_xof: order.subtotal_xof || order.total_xof,
-          total_price_xof: order.subtotal_xof || order.total_xof,
-        }
-      ];
+    : [];
+
+  // Fallback: try finding items in DB by catalog or subtotal matching if items empty
+  if (itemsToRender.length === 0) {
+    const catalogProducts = db.getProducts();
+    const matchingProduct = catalogProducts.find(p => p.price_xof === order.subtotal_xof);
+    if (matchingProduct) {
+      itemsToRender = [{
+        id: 'matched-item',
+        product_id: matchingProduct.id,
+        product_name: matchingProduct.name,
+        sku: matchingProduct.sku,
+        quantity: 1,
+        unit_price_xof: matchingProduct.price_xof,
+        total_price_xof: matchingProduct.price_xof,
+      }];
+    } else {
+      itemsToRender = [{
+        id: 'fallback-item',
+        product_id: '',
+        product_name: 'Gamme Soins & Beauté Eureka',
+        sku: 'EB-SOIN',
+        quantity: 1,
+        unit_price_xof: order.subtotal_xof || order.total_xof,
+        total_price_xof: order.subtotal_xof || order.total_xof,
+      }];
+    }
+  }
 
   const tableData = itemsToRender.map((item) => [
-    item.product_name || 'Article Eureka Beauty',
+    item.product_name || 'Produit Eureka Beauty',
     (item.quantity || 1).toString(),
-    formatPrice(item.unit_price_xof || order.subtotal_xof || order.total_xof),
-    formatPrice(item.total_price_xof || ((item.unit_price_xof || 0) * (item.quantity || 1)) || order.total_xof),
+    cleanPrice(item.unit_price_xof || order.subtotal_xof || order.total_xof),
+    cleanPrice(item.total_price_xof || ((item.unit_price_xof || 0) * (item.quantity || 1)) || order.total_xof),
   ]);
 
   autoTable(doc, {
@@ -140,15 +162,18 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
     bodyStyles: {
       textColor: darkColor,
       fontSize: 8.5,
+      cellPadding: 3,
     },
     columnStyles: {
-      0: { cellWidth: 90 },
-      1: { halign: 'center', cellWidth: 25 },
-      2: { halign: 'right', cellWidth: 35 },
-      3: { halign: 'right', cellWidth: 32 },
+      0: { cellWidth: 82, halign: 'left' },
+      1: { cellWidth: 18, halign: 'center' },
+      2: { cellWidth: 42, halign: 'right' },
+      3: { cellWidth: 40, halign: 'right' },
     },
+    tableLineWidth: 0.1,
+    tableLineColor: [220, 220, 220],
     alternateRowStyles: {
-      fillColor: [252, 250, 247],
+      fillColor: [253, 251, 248],
     },
   });
 
@@ -160,37 +185,37 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   doc.setFontSize(8.5);
   doc.setTextColor(...grayColor);
 
-  doc.text('Sous-total articles :', 135, totalsTop);
+  doc.text('Sous-total articles :', 130, totalsTop);
   doc.setTextColor(...darkColor);
-  doc.text(formatPrice(order.subtotal_xof), 196, totalsTop, { align: 'right' });
+  doc.text(cleanPrice(order.subtotal_xof), 196, totalsTop, { align: 'right' });
 
   let currentY = totalsTop + 5;
   if (order.discount_xof > 0) {
     doc.setTextColor(...goldColor);
-    doc.text('Remises appliquées :', 135, currentY);
-    doc.text(`-${formatPrice(order.discount_xof)}`, 196, currentY, { align: 'right' });
+    doc.text('Remises appliquées :', 130, currentY);
+    doc.text(`-${cleanPrice(order.discount_xof)}`, 196, currentY, { align: 'right' });
     currentY += 5;
   }
 
   doc.setTextColor(...grayColor);
-  doc.text("Frais d'expédition :", 135, currentY);
+  doc.text("Frais d'expédition :", 130, currentY);
   doc.setTextColor(...darkColor);
-  doc.text(formatPrice(order.shipping_cost_xof), 196, currentY, { align: 'right' });
+  doc.text(cleanPrice(order.shipping_cost_xof), 196, currentY, { align: 'right' });
 
   currentY += 4;
   doc.setDrawColor(...darkColor);
   doc.setLineWidth(0.4);
-  doc.line(135, currentY, 196, currentY);
+  doc.line(130, currentY, 196, currentY);
 
   currentY += 6;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setTextColor(...darkColor);
-  doc.text('Montant Net à Payer :', 135, currentY);
+  doc.text('Montant Net à Payer :', 130, currentY);
 
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setTextColor(...goldColor);
-  doc.text(formatPrice(order.total_xof), 196, currentY, { align: 'right' });
+  doc.text(cleanPrice(order.total_xof), 196, currentY, { align: 'right' });
 
   // 6. Footer Terms
   const pageHeight = doc.internal.pageSize.getHeight();
