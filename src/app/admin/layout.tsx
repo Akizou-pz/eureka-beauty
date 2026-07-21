@@ -149,12 +149,14 @@ export default function AdminLayout({
 
           {/* User info */}
           <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl text-xs">
-            <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold">
-              AD
+            <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold shrink-0">
+              {user ? `${(user.first_name || '')[0] || ''}${(user.last_name || '')[0] || ''}`.toUpperCase() || 'AD' : 'AD'}
             </div>
-            <div>
-              <p className="font-bold text-white">Directrice Eureka</p>
-              <span className="text-[10px] text-gold font-semibold uppercase tracking-wider flex items-center gap-1">
+            <div className="overflow-hidden">
+              <p className="font-bold text-white truncate">
+                {user ? `${user.first_name} ${user.last_name}`.trim() : 'Administrateur'}
+              </p>
+              <span className="text-[10px] text-gold font-semibold uppercase tracking-wider flex items-center gap-1 mt-0.5">
                 <UserCheck size={10} /> Super Admin
               </span>
             </div>
