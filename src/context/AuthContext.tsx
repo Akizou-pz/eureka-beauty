@@ -124,19 +124,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Fetch or create profile
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('customers')
           .select('*')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
+
+        if (!profile && data.user.email) {
+          const { data: profileByEmail } = await supabase
+            .from('customers')
+            .select('*')
+            .eq('email', data.user.email.toLowerCase())
+            .maybeSingle();
+
+          if (profileByEmail) {
+            profile = profileByEmail;
+            await supabase.from('customers').update({ id: data.user.id }).eq('email', data.user.email.toLowerCase());
+            profile.id = data.user.id;
+          }
+        }
 
         if (profile) {
           setUser(profile);
           localStorage.setItem('eb_session', JSON.stringify(profile));
           return { success: true, isAdmin: profile.role === 'admin' };
         } else {
-          // Fallback profile creation
           const newCustomer: Customer = {
             id: data.user.id,
             first_name: data.user.user_metadata?.first_name || 'Client',
