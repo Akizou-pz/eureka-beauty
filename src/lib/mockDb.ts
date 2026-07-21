@@ -600,8 +600,18 @@ class MockDB {
           localStorage.setItem('eb_users_db', JSON.stringify(registered));
         }
 
-        const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
-        if (orders) this.set('eb_orders', orders);
+        const { data: rawOrders } = await supabase.from('orders').select('*');
+        if (rawOrders) {
+          const { data: rawItems } = await supabase.from('order_items').select('*');
+          const fullOrders = rawOrders.map((ord: any) => {
+            const matchedItems = rawItems ? rawItems.filter((i: any) => i.order_id === ord.id) : [];
+            return {
+              ...ord,
+              items: (ord.items && Array.isArray(ord.items) && ord.items.length > 0) ? ord.items : matchedItems,
+            };
+          });
+          this.set('eb_orders', fullOrders);
+        }
 
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
@@ -618,9 +628,17 @@ class MockDB {
           { event: '*', schema: 'public', table: 'orders' },
           async (payload) => {
             console.log('🔔 Realtime Update received for orders:', payload);
-            const { data: orders } = await supabase.from('orders').select('*, items:order_items(*)');
-            if (orders) {
-              this.set('eb_orders', orders);
+            const { data: rawOrders } = await supabase.from('orders').select('*');
+            if (rawOrders) {
+              const { data: rawItems } = await supabase.from('order_items').select('*');
+              const fullOrders = rawOrders.map((ord: any) => {
+                const matchedItems = rawItems ? rawItems.filter((i: any) => i.order_id === ord.id) : [];
+                return {
+                  ...ord,
+                  items: (ord.items && Array.isArray(ord.items) && ord.items.length > 0) ? ord.items : matchedItems,
+                };
+              });
+              this.set('eb_orders', fullOrders);
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
               }

@@ -104,11 +104,25 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   }
 
   // 4. Products Table using autoTable
-  const tableData = order.items.map((item) => [
-    item.product_name,
-    item.quantity.toString(),
-    formatPrice(item.unit_price_xof),
-    formatPrice(item.total_price_xof),
+  const itemsToRender = (order.items && Array.isArray(order.items) && order.items.length > 0)
+    ? order.items
+    : [
+        {
+          id: 'item-fallback',
+          product_id: '',
+          product_name: 'Produits commandés Eureka Beauty',
+          sku: 'EB-PROD',
+          quantity: 1,
+          unit_price_xof: order.subtotal_xof || order.total_xof,
+          total_price_xof: order.subtotal_xof || order.total_xof,
+        }
+      ];
+
+  const tableData = itemsToRender.map((item) => [
+    item.product_name || 'Article Eureka Beauty',
+    (item.quantity || 1).toString(),
+    formatPrice(item.unit_price_xof || order.subtotal_xof || order.total_xof),
+    formatPrice(item.total_price_xof || ((item.unit_price_xof || 0) * (item.quantity || 1)) || order.total_xof),
   ]);
 
   autoTable(doc, {

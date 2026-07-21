@@ -170,14 +170,24 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {selectedOrder.items.map((item, idx) => (
+              {((selectedOrder.items && selectedOrder.items.length > 0) ? selectedOrder.items : [
+                {
+                  id: 'fallback-item',
+                  product_id: '',
+                  product_name: 'Produits commandés Eureka Beauty',
+                  sku: 'EB-PROD',
+                  quantity: 1,
+                  unit_price_xof: selectedOrder.subtotal_xof || selectedOrder.total_xof,
+                  total_price_xof: selectedOrder.subtotal_xof || selectedOrder.total_xof
+                }
+              ]).map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/30">
                   <td className="py-3 pr-3 font-bold text-black break-words">
-                    {item.product_name}
+                    {item.product_name || 'Article Eureka Beauty'}
                   </td>
-                  <td className="py-3 px-2 text-center font-bold text-black">{item.quantity}</td>
-                  <td className="py-3 px-2 text-right text-gray-800 whitespace-nowrap">{formatPrice(item.unit_price_xof)}</td>
-                  <td className="py-3 pl-3 text-right font-bold text-black whitespace-nowrap">{formatPrice(item.total_price_xof)}</td>
+                  <td className="py-3 px-2 text-center font-bold text-black">{item.quantity || 1}</td>
+                  <td className="py-3 px-2 text-right text-gray-800 whitespace-nowrap">{formatPrice(item.unit_price_xof || selectedOrder.total_xof)}</td>
+                  <td className="py-3 pl-3 text-right font-bold text-black whitespace-nowrap">{formatPrice(item.total_price_xof || selectedOrder.total_xof)}</td>
                 </tr>
               ))}
             </tbody>
@@ -417,13 +427,23 @@ export default function AdminOrdersPage() {
               <div className="space-y-2 text-xs">
                 <h4 className="font-serif-display font-semibold text-gold uppercase tracking-wider text-[10px]">Articles commandés</h4>
                 <div className="space-y-2">
-                  {selectedOrder.items.map((item, idx) => (
+                  {((selectedOrder.items && selectedOrder.items.length > 0) ? selectedOrder.items : [
+                    {
+                      id: 'fallback-item',
+                      product_id: '',
+                      product_name: 'Produits commandés Eureka Beauty',
+                      sku: 'EB-PROD',
+                      quantity: 1,
+                      unit_price_xof: selectedOrder.subtotal_xof || selectedOrder.total_xof,
+                      total_price_xof: selectedOrder.subtotal_xof || selectedOrder.total_xof
+                    }
+                  ]).map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-white/5 p-2.5 rounded-lg border border-white/5">
                       <div>
-                        <p className="font-bold text-white">{item.product_name}</p>
-                        <span className="text-[9px] text-white/40 uppercase">x{item.quantity} • SKU: {item.sku}</span>
+                        <p className="font-bold text-white">{item.product_name || 'Article Eureka Beauty'}</p>
+                        <span className="text-[9px] text-white/40 uppercase">x{item.quantity || 1} • {item.sku ? `SKU: ${item.sku}` : formatPrice(item.unit_price_xof || selectedOrder.total_xof)}</span>
                       </div>
-                      <span className="font-serif-display font-semibold text-gold">{formatPrice(item.total_price_xof)}</span>
+                      <span className="font-serif-display font-semibold text-gold">{formatPrice(item.total_price_xof || selectedOrder.total_xof)}</span>
                     </div>
                   ))}
                 </div>
