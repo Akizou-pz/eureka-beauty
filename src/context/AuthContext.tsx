@@ -85,8 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Notify UI components of login
     window.dispatchEvent(new CustomEvent('eb_user_login', { detail: { role } }));
 
-    if (window.location.pathname !== target && window.location.pathname !== target.slice(0, -1)) {
+    const current = window.location.pathname;
+    const normalize = (p: string) => (p.endsWith('/') ? p : p + '/');
+
+    if (normalize(current) !== normalize(target)) {
       window.location.href = target;
+    } else {
+      // Force reload page to immediately switch out of guest login view to dashboard
+      window.location.reload();
     }
   };
 
@@ -133,12 +139,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
                 if (accessToken && HAS_SUPABASE_CREDS) {
-                  const { data: sessionData } = await supabase.auth.setSession({
-                    access_token: accessToken,
-                    refresh_token: refreshToken || '',
-                  });
-                  if (sessionData?.user) {
-                    const profile = await syncUserSession(sessionData.user);
+                  const { data: userData } = await supabase.auth.getUser(accessToken);
+                  let authUser = userData?.user;
+
+                  if (!authUser) {
+                    const { data: sessionData } = await supabase.auth.setSession({
+                      access_token: accessToken,
+                      refresh_token: refreshToken || accessToken,
+                    });
+                    authUser = sessionData?.user;
+                  }
+
+                  if (authUser) {
+                    const profile = await syncUserSession(authUser);
                     redirectByRole(profile?.role);
                   }
                 }
