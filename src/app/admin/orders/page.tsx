@@ -96,79 +96,85 @@ export default function AdminOrdersPage() {
 
   if (isPrinting && selectedOrder) {
     return (
-      <div className="bg-white text-black p-8 font-sans space-y-8 w-full min-h-screen print:p-0">
+      <div className="bg-white text-black p-4 sm:p-8 font-sans space-y-6 sm:space-y-8 w-full max-w-4xl mx-auto min-h-screen print:p-0 print:max-w-none">
         <style>{`
           @media print {
             body {
               background: white !important;
               color: black !important;
+              font-size: 11px !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
           }
           @page {
-            size: A4;
-            margin: 1.5cm;
+            size: A4 portrait;
+            margin: 10mm 12mm;
           }
         `}</style>
 
         {/* Invoice Header */}
-        <div className="flex justify-between items-start border-b border-[#c5a880] pb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-[#c5a880] pb-6 gap-4 sm:gap-0">
           <div className="space-y-1">
             <span className="font-serif text-2xl font-bold tracking-wider text-black">
               EUREKA <span className="text-[#c5a880] font-normal">BEAUTY</span>
             </span>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[#c5a880] font-semibold">Revelez votre beauté naturelle</p>
-            <p className="text-xs text-gray-500 mt-2">Lomé, Togo</p>
-            <p className="text-xs text-gray-500">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[#c5a880] font-semibold">Révélez votre beauté naturelle</p>
+            <p className="text-xs text-gray-600 mt-2">Lomé, Togo</p>
+            <p className="text-xs text-gray-600">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
           </div>
-          <div className="text-right space-y-1">
+          <div className="text-left sm:text-right space-y-1">
             <h2 className="font-serif text-2xl font-bold tracking-wider uppercase text-black">Facture</h2>
-            <p className="text-xs text-gray-500">Numéro : <span className="font-semibold text-black">{selectedOrder.order_number}</span></p>
-            <p className="text-xs text-gray-500">Date : {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
-            <p className="text-xs text-gray-500">Statut : <span className="font-bold text-[#c5a880]">{selectedOrder.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER (COD)'}</span></p>
+            <p className="text-xs text-gray-600">N° Facture : <span className="font-bold text-black">{selectedOrder.order_number}</span></p>
+            <p className="text-xs text-gray-600">Date : {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
+            <p className="text-xs text-gray-600">Statut : <span className="font-bold text-[#c5a880]">{selectedOrder.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER À LA LIVRAISON (COD)'}</span></p>
           </div>
         </div>
 
         {/* Customer & Shipping Details split */}
-        <div className="grid grid-cols-2 gap-8 text-xs pt-4">
-          <div className="p-4 border border-[#c5a880]/20 rounded-xl bg-gray-50/50 space-y-2">
-            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/10 pb-1.5 text-[10px]">Facturé à :</h4>
-            <div className="space-y-1 text-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 text-xs pt-2">
+          <div className="p-4 border border-[#c5a880]/30 rounded-xl bg-gray-50/70 space-y-2">
+            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/20 pb-1.5 text-[10px]">Facturé à :</h4>
+            <div className="space-y-1 text-gray-800">
               <p className="font-bold text-black text-sm">{selectedOrder.first_name} {selectedOrder.last_name}</p>
-              <p>{selectedOrder.email}</p>
-              <p>{selectedOrder.phone}</p>
+              <p className="break-all">{selectedOrder.email}</p>
+              <p>Tél : {selectedOrder.phone}</p>
               {selectedOrder.whatsapp && <p>WhatsApp : {selectedOrder.whatsapp}</p>}
             </div>
           </div>
-          <div className="p-4 border border-[#c5a880]/20 rounded-xl bg-gray-50/50 space-y-2">
-            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/10 pb-1.5 text-[10px]">Adresse d'expédition :</h4>
-            <div className="space-y-1 text-gray-700">
+          <div className="p-4 border border-[#c5a880]/30 rounded-xl bg-gray-50/70 space-y-2">
+            <h4 className="font-bold uppercase tracking-wider text-black border-b border-[#c5a880]/20 pb-1.5 text-[10px]">Adresse d'expédition :</h4>
+            <div className="space-y-1 text-gray-800">
               <p className="font-semibold text-black">{selectedOrder.address_line}</p>
               <p>{selectedOrder.city}, {selectedOrder.country}</p>
-              <p className="pt-1.5 text-[10px] uppercase font-bold text-[#c5a880]">Méthode : <span className="text-black">{selectedOrder.payment_method}</span></p>
+              {selectedOrder.delivery_instructions && <p className="text-[11px] italic">Note : "{selectedOrder.delivery_instructions}"</p>}
+              <p className="pt-1 text-[10px] uppercase font-bold text-[#c5a880]">Paiement : <span className="text-black">{selectedOrder.payment_method}</span></p>
             </div>
           </div>
         </div>
 
-        {/* Ordered items Table */}
-        <div className="pt-6">
-          <table className="w-full text-left text-xs border-collapse">
+        {/* Ordered items Table (Mobile-responsive) */}
+        <div className="pt-4 overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse min-w-[500px] sm:min-w-full">
             <thead>
-              <tr className="border-b-2 border-black/80 text-black font-bold uppercase tracking-wider">
-                <th className="py-3 pr-4">Description de l'article</th>
-                <th className="py-3 px-4">SKU</th>
-                <th className="py-3 px-4 text-center">Quantité</th>
-                <th className="py-3 px-4 text-right">Prix Unitaire</th>
-                <th className="py-3 pl-4 text-right">Total</th>
+              <tr className="border-b-2 border-black text-black font-bold uppercase tracking-wider text-[10px]">
+                <th className="py-2.5 pr-3 w-5/12">Description du Produit</th>
+                <th className="py-2.5 px-2 w-2/12">SKU</th>
+                <th className="py-2.5 px-2 text-center w-1/12">Qté</th>
+                <th className="py-2.5 px-2 text-right w-2/12">Prix Unitaire</th>
+                <th className="py-2.5 pl-3 text-right w-2/12">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {selectedOrder.items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/20">
-                  <td className="py-4 pr-4 font-semibold text-black">{item.product_name}</td>
-                  <td className="py-4 px-4 uppercase text-gray-500 font-mono">{item.sku}</td>
-                  <td className="py-4 px-4 text-center font-semibold text-black">{item.quantity}</td>
-                  <td className="py-4 px-4 text-right text-gray-700">{formatPrice(item.unit_price_xof)}</td>
-                  <td className="py-4 pl-4 text-right font-bold text-black">{formatPrice(item.total_price_xof)}</td>
+                <tr key={idx} className="hover:bg-gray-50/30">
+                  <td className="py-3 pr-3 font-bold text-black break-words">
+                    {item.product_name}
+                  </td>
+                  <td className="py-3 px-2 uppercase text-gray-500 font-mono text-[10px] break-all">{item.sku}</td>
+                  <td className="py-3 px-2 text-center font-bold text-black">{item.quantity}</td>
+                  <td className="py-3 px-2 text-right text-gray-800 whitespace-nowrap">{formatPrice(item.unit_price_xof)}</td>
+                  <td className="py-3 pl-3 text-right font-bold text-black whitespace-nowrap">{formatPrice(item.total_price_xof)}</td>
                 </tr>
               ))}
             </tbody>
@@ -176,8 +182,8 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* Pricing Totals */}
-        <div className="flex justify-end pt-8">
-          <div className="w-80 text-xs space-y-2.5 border-t border-gray-200 pt-4 text-gray-700">
+        <div className="flex justify-end pt-6">
+          <div className="w-full sm:w-80 text-xs space-y-2 border-t-2 border-black pt-4 text-gray-800">
             <div className="flex justify-between">
               <span>Sous-total articles :</span>
               <span className="font-semibold text-black">{formatPrice(selectedOrder.subtotal_xof)}</span>
@@ -192,7 +198,7 @@ export default function AdminOrdersPage() {
               <span>Frais d'expédition :</span>
               <span className="font-semibold text-black">{formatPrice(selectedOrder.shipping_cost_xof)}</span>
             </div>
-            <div className="flex justify-between border-t border-black pt-3 text-sm font-bold text-black">
+            <div className="flex justify-between border-t border-black pt-2.5 text-sm font-bold text-black">
               <span>Montant Net à Payer :</span>
               <span className="text-[#c5a880] text-base font-bold">{formatPrice(selectedOrder.total_xof)}</span>
             </div>
@@ -200,9 +206,9 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* Terms info */}
-        <div className="text-[10px] text-gray-400 font-light leading-relaxed border-t border-gray-100 pt-16 text-center space-y-1">
+        <div className="text-[10px] text-gray-500 font-light leading-relaxed border-t border-gray-200 pt-12 text-center space-y-1">
           <p>Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à eurekasupplytg@gmail.com.</p>
-          <p className="mt-2 font-bold text-black uppercase tracking-widest text-[9px]">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
+          <p className="mt-1 font-bold text-black uppercase tracking-widest text-[9px]">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
         </div>
       </div>
     );
@@ -440,94 +446,95 @@ export default function AdminOrdersPage() {
           PRINT LAYOUT INVOICE (ONLY VISIBLE ON PRINT)
          ========================================== */}
       {selectedOrder && (
-        <div className="hidden print:block bg-white text-black p-8 font-sans space-y-8 w-[21cm]">
+        <div className="hidden print:block bg-white text-black p-4 font-sans space-y-6 w-full max-w-none">
 
           {/* Invoice Header */}
-          <div className="flex justify-between items-start border-b-2 border-dark pb-6">
+          <div className="flex justify-between items-start border-b-2 border-black pb-4">
             <div>
-              <span className="font-serif-display text-2xl font-semibold tracking-wider text-dark">
-                EUREKA <span className="text-gold font-normal">BEAUTY</span>
+              <span className="font-serif-display text-xl font-bold tracking-wider text-black">
+                EUREKA <span className="text-[#c5a880] font-normal">BEAUTY</span>
               </span>
-              <p className="text-[9px] uppercase tracking-widest text-dark-muted mt-1">Reveal Your Natural Beauty</p>
-              <p className="text-xs text-dark-muted mt-2">Lomé, Togo</p>
-              <p className="text-xs text-dark-muted">eurekasupplytg@gmail.com | +228 93 86 67 52</p>
+              <p className="text-[9px] uppercase tracking-widest text-gray-500 mt-0.5">Révélez votre beauté naturelle</p>
+              <p className="text-[11px] text-gray-600 mt-1">Lomé, Togo • eurekasupplytg@gmail.com | +228 93 86 67 52</p>
             </div>
-            <div className="text-right">
-              <h2 className="font-serif-display text-2xl font-semibold text-dark uppercase tracking-wider">Facture</h2>
-              <p className="text-xs text-dark-muted mt-1">Numéro : {selectedOrder.order_number}</p>
-              <p className="text-xs text-dark-muted">Date : {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR')}</p>
-              <p className="text-xs text-dark-muted">Statut : <strong>{selectedOrder.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER (COD)'}</strong></p>
+            <div className="text-right space-y-0.5 text-xs">
+              <h2 className="font-serif-display text-xl font-bold text-black uppercase tracking-wider">Facture</h2>
+              <p className="text-gray-600">N° Facture : <span className="font-bold text-black">{selectedOrder.order_number}</span></p>
+              <p className="text-gray-600">Date : {new Date(selectedOrder.created_at).toLocaleDateString('fr-FR')}</p>
+              <p className="text-gray-600">Statut : <strong>{selectedOrder.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER À LA LIVRAISON (COD)'}</strong></p>
             </div>
           </div>
 
           {/* Customer & Shipping Details split */}
-          <div className="grid grid-cols-2 gap-8 text-xs">
-            <div className="space-y-1">
-              <h4 className="font-semibold text-dark uppercase tracking-wider border-b border-dark/10 pb-1">Facturé à :</h4>
+          <div className="grid grid-cols-2 gap-6 text-xs pt-1">
+            <div className="space-y-1 p-3 border border-gray-200 rounded-lg bg-gray-50">
+              <h4 className="font-bold text-black uppercase tracking-wider border-b border-gray-200 pb-1 text-[10px]">Facturé à :</h4>
               <p className="font-bold">{selectedOrder.first_name} {selectedOrder.last_name}</p>
               <p>{selectedOrder.email}</p>
-              <p>{selectedOrder.phone}</p>
+              <p>Tél : {selectedOrder.phone}</p>
+              {selectedOrder.whatsapp && <p>WhatsApp : {selectedOrder.whatsapp}</p>}
             </div>
-            <div className="space-y-1">
-              <h4 className="font-semibold text-dark uppercase tracking-wider border-b border-dark/10 pb-1">Adresse d'expédition :</h4>
+            <div className="space-y-1 p-3 border border-gray-200 rounded-lg bg-gray-50">
+              <h4 className="font-bold text-black uppercase tracking-wider border-b border-gray-200 pb-1 text-[10px]">Adresse d'expédition :</h4>
               <p className="font-semibold">{selectedOrder.address_line}</p>
               <p>{selectedOrder.city}, {selectedOrder.country}</p>
-              <p>Méthode : <span className="font-bold uppercase text-gold">{selectedOrder.payment_method}</span></p>
+              {selectedOrder.delivery_instructions && <p className="italic text-[10px]">Note : "{selectedOrder.delivery_instructions}"</p>}
+              <p className="pt-0.5 text-[10px] uppercase font-bold text-[#c5a880]">Paiement : <span className="text-black">{selectedOrder.payment_method}</span></p>
             </div>
           </div>
 
           {/* Ordered items Table */}
-          <table className="w-full text-left text-xs border-collapse mt-8">
+          <table className="w-full text-left text-xs border-collapse mt-4">
             <thead>
-              <tr className="border-b-2 border-dark text-dark font-bold uppercase tracking-wider">
-                <th className="py-2">Description de l'article</th>
-                <th className="py-2">SKU</th>
-                <th className="py-2 text-center">Quantité</th>
-                <th className="py-2 text-right">Prix Unitaire</th>
-                <th className="py-2 text-right">Total</th>
+              <tr className="border-b-2 border-black text-black font-bold uppercase tracking-wider text-[10px]">
+                <th className="py-2 pr-3 w-5/12">Description du Produit</th>
+                <th className="py-2 px-2 w-2/12">SKU</th>
+                <th className="py-2 px-2 text-center w-1/12">Qté</th>
+                <th className="py-2 px-2 text-right w-2/12">Prix Unitaire</th>
+                <th className="py-2 pl-3 text-right w-2/12">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-dark/10">
+            <tbody className="divide-y divide-gray-200">
               {selectedOrder.items.map((item, idx) => (
-                <tr key={idx} className="py-2">
-                  <td className="py-3 font-semibold text-dark">{item.product_name}</td>
-                  <td className="py-3 uppercase text-dark-muted">{item.sku}</td>
-                  <td className="py-3 text-center">{item.quantity}</td>
-                  <td className="py-3 text-right">{formatPrice(item.unit_price_xof)}</td>
-                  <td className="py-3 text-right font-bold">{formatPrice(item.total_price_xof)}</td>
+                <tr key={idx}>
+                  <td className="py-2.5 pr-3 font-bold text-black">{item.product_name}</td>
+                  <td className="py-2.5 px-2 uppercase text-gray-500 font-mono text-[10px]">{item.sku}</td>
+                  <td className="py-2.5 px-2 text-center font-bold">{item.quantity}</td>
+                  <td className="py-2.5 px-2 text-right whitespace-nowrap">{formatPrice(item.unit_price_xof)}</td>
+                  <td className="py-2.5 pl-3 text-right font-bold whitespace-nowrap">{formatPrice(item.total_price_xof)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           {/* Pricing Totals */}
-          <div className="flex justify-end mt-8">
-            <div className="w-64 text-xs space-y-2 border-t-2 border-dark pt-4">
+          <div className="flex justify-end mt-4">
+            <div className="w-72 text-xs space-y-1.5 border-t-2 border-black pt-3">
               <div className="flex justify-between">
                 <span>Sous-total articles :</span>
-                <span>{formatPrice(selectedOrder.subtotal_xof)}</span>
+                <span className="font-semibold">{formatPrice(selectedOrder.subtotal_xof)}</span>
               </div>
               {selectedOrder.discount_xof > 0 && (
-                <div className="flex justify-between font-bold text-dark">
+                <div className="flex justify-between font-bold text-[#c5a880]">
                   <span>Remises appliquées :</span>
                   <span>-{formatPrice(selectedOrder.discount_xof)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Frais d'expédition :</span>
-                <span>{formatPrice(selectedOrder.shipping_cost_xof)}</span>
+                <span className="font-semibold">{formatPrice(selectedOrder.shipping_cost_xof)}</span>
               </div>
-              <div className="flex justify-between border-t border-dark pt-2 text-sm font-bold text-dark">
+              <div className="flex justify-between border-t border-black pt-2 text-sm font-bold text-black">
                 <span>Montant Net à Payer :</span>
-                <span className="font-serif-display text-base font-semibold">{formatPrice(selectedOrder.total_xof)}</span>
+                <span className="font-serif-display text-base font-bold text-[#c5a880]">{formatPrice(selectedOrder.total_xof)}</span>
               </div>
             </div>
           </div>
 
           {/* Terms info */}
-          <div className="text-[10px] text-dark-muted font-light leading-relaxed border-t border-dark/10 pt-16 text-center">
+          <div className="text-[9px] text-gray-500 font-light leading-relaxed border-t border-gray-200 pt-8 text-center">
             <p>Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à eurekasupplytg@gmail.com.</p>
-            <p className="mt-1 font-bold text-dark uppercase tracking-widest">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
+            <p className="mt-1 font-bold text-black uppercase tracking-widest">EUREKA BEAUTY - REVEAL YOUR NATURAL BEAUTY</p>
           </div>
 
         </div>
