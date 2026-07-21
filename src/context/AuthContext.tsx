@@ -5,6 +5,7 @@ import { Customer } from '@/lib/db';
 import { supabase, HAS_SUPABASE_CREDS } from '@/lib/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 interface AuthContextType {
   user: Customer | null;
@@ -87,6 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (Capacitor.isNativePlatform()) {
         App.addListener('appUrlOpen', async (event) => {
           console.log('🔗 Native App opened via deep link:', event.url);
+          try {
+            await Browser.close();
+          } catch (e) {
+            // Browser might already be closed
+          }
           if (event.url.includes('access_token') || event.url.includes('code=') || event.url.includes('auth/callback')) {
             try {
               const cleanUrlStr = event.url.replace('com.eurekabeauty.app://', 'https://eureka-beauty.com/');
@@ -394,14 +400,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     if (HAS_SUPABASE_CREDS) {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: getRedirectUrl()
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: 'com.eurekabeauty.app://auth/callback',
+            skipBrowserRedirect: true,
+          }
+        });
+        if (error) return { success: false, error: error.message };
+        if (data?.url) {
+          await Browser.open({ url: data.url });
         }
-      });
-      if (error) return { success: false, error: error.message };
-      return { success: true };
+        return { success: true };
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+      }
     } else {
       // Simulate Google authentication locally (Offline mode)
       return new Promise((resolve) => {
@@ -426,14 +447,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithFacebook = async (): Promise<{ success: boolean; error?: string }> => {
     if (HAS_SUPABASE_CREDS) {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          redirectTo: getRedirectUrl()
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'facebook',
+          options: {
+            redirectTo: 'com.eurekabeauty.app://auth/callback',
+            skipBrowserRedirect: true,
+          }
+        });
+        if (error) return { success: false, error: error.message };
+        if (data?.url) {
+          await Browser.open({ url: data.url });
         }
-      });
-      if (error) return { success: false, error: error.message };
-      return { success: true };
+        return { success: true };
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'facebook',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+      }
     } else {
       // Simulate Facebook authentication locally (Offline mode)
       return new Promise((resolve) => {
