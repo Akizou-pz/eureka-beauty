@@ -58,8 +58,8 @@ function CheckoutForm() {
   // Form Fields
   const [fullName, setFullName] = useState(user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
+  const [whatsapp, setWhatsapp] = useState(user?.whatsapp || user?.phone || '');
+  const [phone, setPhone] = useState(user?.whatsapp || user?.phone || '');
   const [country, setCountry] = useState('Togo');
   const [city, setCity] = useState('Lomé');
   const [addressLine, setAddressLine] = useState('');
@@ -422,32 +422,21 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                  {t('phone')} <span className="text-error">*</span>
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="+228 93 86 67 52"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-                  {t('whatsapp')}
-                </label>
-                <input
-                  type="tel"
-                  placeholder="+228 93 86 67 52"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
-                />
-              </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
+                Numéro WhatsApp <span className="text-error">*</span>
+              </label>
+              <input
+                type="tel"
+                required
+                placeholder="Ex: +228 93 86 67 52"
+                value={whatsapp}
+                onChange={(e) => {
+                  setWhatsapp(e.target.value);
+                  setPhone(e.target.value);
+                }}
+                className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"
+              />
             </div>
 
             <div>
