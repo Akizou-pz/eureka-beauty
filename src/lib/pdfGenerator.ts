@@ -1,8 +1,8 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Order, db } from './db';
+import { Order } from './db';
 
-export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) => string) => {
+export const generateOrderSlipPDF = (order: Order, formatPrice: (amount: number) => string) => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -12,13 +12,14 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   const goldColor: [number, number, number] = [197, 160, 89]; // #c5a059
   const darkColor: [number, number, number] = [20, 20, 20];   // #141414
   const grayColor: [number, number, number] = [90, 90, 90];
+  const borderBg: [number, number, number] = [252, 250, 246]; // Luxury cream
 
   // Helper to format currency numbers cleanly for PDF
   const cleanPrice = (amount: number) => {
     return formatPrice(amount).replace(/\s+/g, ' ');
   };
 
-  // 1. Header Title
+  // 1. Header (Logo / Title)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
   doc.setTextColor(...darkColor);
@@ -33,142 +34,125 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   doc.setTextColor(...grayColor);
   doc.text('Lomé, Togo • eurekasupplytg@gmail.com | +228 93 86 67 52', 14, 30);
 
-  // 2. Invoice Meta (Right-aligned)
+  // 2. Document Title (Right-aligned)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setTextColor(...darkColor);
-  doc.text('FACTURE', 196, 20, { align: 'right' });
+  doc.text('BORDEREAU DE COMMANDE', 196, 20, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...grayColor);
-  doc.text(`N° Facture : `, 145, 26);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...darkColor);
-  doc.text(order.order_number, 196, 26, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...grayColor);
-  doc.text(`Date : ${new Date(order.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}`, 196, 31, { align: 'right' });
-
-  const statusText = order.payment_status === 'Paid' ? 'PAYÉ' : 'À PAYER À LA LIVRAISON (COD)';
-  doc.text(`Statut : `, 145, 36);
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
   doc.setTextColor(...goldColor);
-  doc.text(statusText, 196, 36, { align: 'right' });
+  doc.text('Bon de Livraison & Reçu', 196, 25, { align: 'right' });
 
-  // Gold Divider Line
+  // Metadata block (Right side)
+  doc.setFontSize(8.5);
+  doc.setTextColor(...grayColor);
+  doc.text(`N° Commande : `, 145, 31);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkColor);
+  doc.text(order.order_number, 196, 31, { align: 'right' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...grayColor);
+  doc.text(`Date : ${new Date(order.created_at).toLocaleDateString('fr-FR', { dateStyle: 'long' })}`, 196, 36, { align: 'right' });
+
+  // Divider Line
   doc.setDrawColor(...goldColor);
-  doc.setLineWidth(0.5);
+  doc.setLineWidth(0.4);
   doc.line(14, 41, 196, 41);
 
-  // 3. Customer & Shipping Info (2-column Boxes)
-  const boxTop = 46;
-  const boxHeight = 32;
+  // 3. Recipient and Delivery Box (2-column Boxes)
+  const boxTop = 45;
+  const boxHeight = 35;
   const colWidth = 88;
 
-  // Facturé à
-  doc.setFillColor(252, 250, 246);
+  // Box 1: Recipient details
+  doc.setFillColor(...borderBg);
   doc.setDrawColor(226, 215, 197);
   doc.roundedRect(14, boxTop, colWidth, boxHeight, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setTextColor(...darkColor);
-  doc.text('FACTURÉ À :', 18, boxTop + 6);
+  doc.text('DESTINATAIRE :', 18, boxTop + 6);
 
   doc.setFontSize(9);
   doc.text(`${order.first_name} ${order.last_name}`, 18, boxTop + 12);
+  
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...grayColor);
-  doc.text(`Email : ${order.email}`, 18, boxTop + 17);
-  doc.text(`Téléphone : ${order.phone}`, 18, boxTop + 22);
-  if (order.whatsapp) {
-    doc.text(`WhatsApp : ${order.whatsapp}`, 18, boxTop + 27);
+  if (order.email) {
+    doc.text(`Email : ${order.email}`, 18, boxTop + 18);
+  }
+  doc.text(`WhatsApp : ${order.whatsapp || order.phone}`, 18, boxTop + 24);
+  if (order.payment_method) {
+    const pMethodText = order.payment_method === 'COD' 
+      ? 'Espèces à la Livraison (COD)' 
+      : order.payment_method === 'WhatsApp' 
+      ? 'Par WhatsApp' 
+      : order.payment_method;
+    doc.text(`Mode de paiement : ${pMethodText}`, 18, boxTop + 30);
   }
 
-  // Adresse d'expédition
-  doc.setFillColor(252, 250, 246);
+  // Box 2: Delivery address details
+  doc.setFillColor(...borderBg);
   doc.roundedRect(108, boxTop, colWidth, boxHeight, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setTextColor(...darkColor);
-  doc.text("ADRESSE D'EXPÉDITION :", 112, boxTop + 6);
+  doc.text('ADRESSE DE LIVRAISON :', 112, boxTop + 6);
 
   doc.setFontSize(9);
-  doc.text(order.address_line, 112, boxTop + 12);
+  doc.text(`${order.address_line}`, 112, boxTop + 12);
+  doc.text(`${order.city}, ${order.country}`, 112, boxTop + 17);
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(...grayColor);
-  doc.text(`${order.city}, ${order.country}`, 112, boxTop + 17);
-  doc.text(`Paiement : ${order.payment_method}`, 112, boxTop + 22);
   if (order.delivery_instructions) {
-    doc.text(`Note : ${order.delivery_instructions.substring(0, 38)}`, 112, boxTop + 27);
+    const textLines = doc.splitTextToSize(`Instructions : ${order.delivery_instructions}`, colWidth - 8);
+    doc.text(textLines, 112, boxTop + 23);
+  } else {
+    doc.text('Instructions : Aucune consigne spécifique.', 112, boxTop + 23);
   }
 
-  // 4. Products Items Resolution
-  let itemsToRender = (order.items && Array.isArray(order.items) && order.items.length > 0)
-    ? order.items
-    : [];
-
-  // Fallback: try finding items in DB by catalog or subtotal matching if items empty
-  if (itemsToRender.length === 0) {
-    const catalogProducts = db.getProducts();
-    const matchingProduct = catalogProducts.find(p => p.price_xof === order.subtotal_xof);
-    if (matchingProduct) {
-      itemsToRender = [{
-        id: 'matched-item',
-        product_id: matchingProduct.id,
-        product_name: matchingProduct.name,
-        sku: matchingProduct.sku,
-        quantity: 1,
-        unit_price_xof: matchingProduct.price_xof,
-        total_price_xof: matchingProduct.price_xof,
-      }];
-    } else {
-      itemsToRender = [{
-        id: 'fallback-item',
-        product_id: '',
-        product_name: 'Gamme Soins & Beauté Eureka',
-        sku: 'EB-SOIN',
-        quantity: 1,
-        unit_price_xof: order.subtotal_xof || order.total_xof,
-        total_price_xof: order.subtotal_xof || order.total_xof,
-      }];
-    }
-  }
-
-  const tableData = itemsToRender.map((item) => [
-    item.product_name || 'Produit Eureka Beauty',
-    (item.quantity || 1).toString(),
-    cleanPrice(item.unit_price_xof || order.subtotal_xof || order.total_xof),
-    cleanPrice(item.total_price_xof || ((item.unit_price_xof || 0) * (item.quantity || 1)) || order.total_xof),
+  // 4. Products table with a verification check column
+  const tableData = order.items.map((item) => [
+    '[   ]',
+    item.product_name,
+    item.sku || 'N/A',
+    `x ${item.quantity}`,
+    cleanPrice(item.unit_price_xof),
+    cleanPrice(item.total_price_xof)
   ]);
 
   autoTable(doc, {
-    startY: 84,
-    head: [['Description du Produit', 'Qté', 'Prix Unitaire', 'Total']],
+    startY: 85,
+    head: [['Vérifié', 'Désignation de l\'article', 'Code/SKU', 'Qté', 'Prix Unitaire', 'Total']],
     body: tableData,
     theme: 'grid',
     headStyles: {
       fillColor: goldColor,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 9,
+      fontSize: 8.5,
       halign: 'left',
     },
     bodyStyles: {
       textColor: darkColor,
-      fontSize: 8.5,
-      cellPadding: 3,
+      fontSize: 8,
+      cellPadding: 3.5,
     },
     columnStyles: {
-      0: { cellWidth: 82, halign: 'left' },
-      1: { cellWidth: 18, halign: 'center' },
-      2: { cellWidth: 42, halign: 'right' },
-      3: { cellWidth: 40, halign: 'right' },
+      0: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 70, halign: 'left' },
+      2: { cellWidth: 22, halign: 'center' },
+      3: { cellWidth: 15, halign: 'center' },
+      4: { cellWidth: 34, halign: 'right' },
+      5: { cellWidth: 34, halign: 'right' },
     },
     tableLineWidth: 0.1,
     tableLineColor: [220, 220, 220],
@@ -178,7 +162,7 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   });
 
   // 5. Totals Section
-  const finalY = (doc as any).lastAutoTable?.finalY || 130;
+  const finalY = (doc as any).lastAutoTable?.finalY || 135;
   const totalsTop = finalY + 8;
 
   doc.setFont('helvetica', 'normal');
@@ -198,9 +182,10 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   }
 
   doc.setTextColor(...grayColor);
-  doc.text("Frais d'expédition :", 130, currentY);
+  doc.text("Frais de livraison :", 130, currentY);
   doc.setTextColor(...darkColor);
-  doc.text(cleanPrice(order.shipping_cost_xof), 196, currentY, { align: 'right' });
+  const shipCostText = order.shipping_cost_xof === 0 ? 'Gratuit' : cleanPrice(order.shipping_cost_xof);
+  doc.text(shipCostText, 196, currentY, { align: 'right' });
 
   currentY += 4;
   doc.setDrawColor(...darkColor);
@@ -211,24 +196,62 @@ export const generateInvoicePDF = (order: Order, formatPrice: (amount: number) =
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(...darkColor);
-  doc.text('Montant Net à Payer :', 130, currentY);
+  doc.text('Montant Total à Payer :', 130, currentY);
 
   doc.setFontSize(10.5);
   doc.setTextColor(...goldColor);
   doc.text(cleanPrice(order.total_xof), 196, currentY, { align: 'right' });
 
-  // 6. Footer Terms
+  // 6. Signatures & Reception Block
+  const sigTop = Math.max(currentY + 12, finalY + 35);
+  doc.setDrawColor(226, 215, 197);
+  doc.setLineWidth(0.2);
+  doc.line(14, sigTop - 4, 196, sigTop - 4);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...darkColor);
+  doc.text('SIGNATURES POUR CONFIRMATION DE RÉCEPTION', 14, sigTop + 2);
+
+  const sigBoxHeight = 22;
+  const sigBoxWidth = 88;
+
+  // Driver signature box
+  doc.setFillColor(...borderBg);
+  doc.roundedRect(14, sigTop + 6, sigBoxWidth, sigBoxHeight, 2, 2, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...darkColor);
+  doc.text('LE LIVREUR :', 18, sigTop + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...grayColor);
+  doc.text('Signature & Date :', 18, sigTop + 16);
+
+  // Recipient signature box
+  doc.setFillColor(...borderBg);
+  doc.roundedRect(108, sigTop + 6, sigBoxWidth, sigBoxHeight, 2, 2, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...darkColor);
+  doc.text('LE CLIENT (REÇU CONFORME) :', 112, sigTop + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...grayColor);
+  doc.text('Signature & Date :', 112, sigTop + 16);
+
+  // 7. Footer
   const pageHeight = doc.internal.pageSize.getHeight();
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...grayColor);
-  doc.text('Nous vous remercions de votre confiance. Pour tout renseignement, écrivez-nous à eurekasupplytg@gmail.com.', 105, pageHeight - 14, { align: 'center' });
+  doc.text('Bordereau de livraison à conserver par le client pour vérification.', 105, pageHeight - 12, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7);
   doc.setTextColor(...darkColor);
-  doc.text('EUREKA BEAUTY — REVEAL YOUR NATURAL BEAUTY', 105, pageHeight - 9, { align: 'center' });
+  doc.text('EUREKA BEAUTY — REVEAL YOUR NATURAL BEAUTY', 105, pageHeight - 8, { align: 'center' });
 
   // Save the PDF file
-  doc.save(`Facture-${order.order_number}.pdf`);
+  doc.save(`Bordereau-Commande-${order.order_number}.pdf`);
 };

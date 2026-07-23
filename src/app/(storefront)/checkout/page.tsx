@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db, DeliveryZone, Order, ShippingCountry } from '@/lib/db';
 import { trackMetaEvent } from '@/lib/metaPixel';
 import { notifyNewOrder, sendOrderEmailAlert } from '@/lib/notifications';
-import { generateInvoicePDF } from '@/lib/pdfGenerator';
+import { generateOrderSlipPDF } from '@/lib/pdfGenerator';
 import {
   ShoppingBag,
   CheckCircle,
@@ -48,7 +48,7 @@ function CheckoutForm() {
     if (placedOrder && !hasAutoDownloaded.current) {
       hasAutoDownloaded.current = true;
       try {
-        generateInvoicePDF(placedOrder, formatPrice);
+        generateOrderSlipPDF(placedOrder, formatPrice);
       } catch (err) {
         console.error('Auto-download PDF error:', err);
       }
@@ -338,11 +338,11 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
         {/* Fast Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={() => generateInvoicePDF(placedOrder, formatPrice)}
+            onClick={() => generateOrderSlipPDF(placedOrder, formatPrice)}
             className="bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 rounded-lg transition shadow-md flex items-center justify-center gap-2"
           >
             <FileText size={16} />
-            <span>Télécharger le Reçu PDF</span>
+            <span>Télécharger le Bordereau PDF</span>
           </button>
 
           <a

@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { db, Order, Product } from '@/lib/db';
 import { requestNotificationPermission, notifyNewOrder } from '@/lib/notifications';
-import { generateInvoicePDF } from '@/lib/pdfGenerator';
+import { generateOrderSlipPDF } from '@/lib/pdfGenerator';
 import { 
   User, 
   ShoppingBag, 
@@ -595,12 +595,12 @@ function CustomerDashboard() {
                         </div>
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => generateInvoicePDF(ord, formatPrice)}
+                            onClick={() => generateOrderSlipPDF(ord, formatPrice)}
                             className="text-[10px] font-bold uppercase tracking-widest text-gold hover:text-gold-hover transition flex items-center gap-1"
-                            title="Télécharger le reçu PDF"
+                            title="Télécharger le bordereau PDF"
                           >
                             <FileText size={12} />
-                            Reçu (PDF)
+                            Bordereau (PDF)
                           </button>
                           <button
                             onClick={() => router.push(`/track?num=${ord.order_number}&phone=${ord.phone}`)}

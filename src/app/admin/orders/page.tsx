@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { db, Order } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { notifyNewOrder } from '@/lib/notifications';
-import { generateInvoicePDF } from '@/lib/pdfGenerator';
+import { generateOrderSlipPDF } from '@/lib/pdfGenerator';
 import { ClipboardList, Search, Eye, Edit, Printer, Download, CheckCircle, Clock, X, AlertTriangle } from 'lucide-react';
 
 export default function AdminOrdersPage() {
@@ -76,7 +76,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleDownloadPDF = (order: Order) => {
-    generateInvoicePDF(order, formatPrice);
+    generateOrderSlipPDF(order, formatPrice);
   };
 
   const handlePrint = (order: Order) => {
