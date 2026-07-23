@@ -51,9 +51,15 @@ export default function AdminOrdersPage() {
     };
     window.addEventListener('storage', handleStorage);
 
+    // Polling interval of 5 seconds to guarantee permanent real-time synchronization
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 5000);
+
     return () => {
       window.removeEventListener('supabase_sync_complete', loadOrders);
       window.removeEventListener('storage', handleStorage);
+      clearInterval(interval);
     };
   }, []);
 

@@ -93,12 +93,16 @@ function CustomerDashboard() {
   }, [user]);
 
   const loadDeliveryOrders = () => {
-    if (user && user.role === 'delivery') {
-      setAllOrders(db.getOrders());
+    if (!user) return;
+    const orders = db.getOrders();
+    setMyOrders(orders.filter(o => o.customer_id === user.id));
+    if (user.role === 'delivery') {
+      setAllOrders(orders);
     }
   };
 
   useEffect(() => {
+    loadDeliveryOrders();
     window.addEventListener('supabase_sync_complete', loadDeliveryOrders);
 
     const handleStorage = (e: StorageEvent) => {
@@ -107,6 +111,11 @@ function CustomerDashboard() {
       }
     };
     window.addEventListener('storage', handleStorage);
+
+    // Polling interval of 5 seconds to guarantee permanent real-time synchronization
+    const interval = setInterval(() => {
+      loadDeliveryOrders();
+    }, 5000);
 
     const handleUserLogin = (e: any) => {
       const role = e.detail?.role;
@@ -124,6 +133,7 @@ function CustomerDashboard() {
       window.removeEventListener('supabase_sync_complete', loadDeliveryOrders);
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('eb_user_login', handleUserLogin);
+      clearInterval(interval);
     };
   }, [user, router]);
 
