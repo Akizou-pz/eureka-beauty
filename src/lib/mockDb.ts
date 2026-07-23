@@ -581,6 +581,15 @@ class MockDB {
         const { data: reviews } = await supabase.from('reviews').select('*');
         if (reviews && reviews.length > 0) this.set('eb_reviews', reviews);
 
+        try {
+          const { data: homeSettings } = await supabase.from('homepage_settings').select('*');
+          if (homeSettings && homeSettings.length > 0 && homeSettings[0].settings) {
+            this.set('eb_homepage_settings', homeSettings[0].settings);
+          }
+        } catch (e) {
+          console.warn('Could not sync homepage settings:', e);
+        }
+
         const { data: customers } = await supabase.from('customers').select('*');
         if (customers && customers.length > 0) {
           const registered = JSON.parse(localStorage.getItem('eb_users_db') || '{}');
@@ -672,6 +681,24 @@ class MockDB {
                 };
               });
               localStorage.setItem('eb_users_db', JSON.stringify(registered));
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      // Subscribe to real-time changes on homepage_settings
+      supabase
+        .channel('public:homepage_settings')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'homepage_settings' },
+          async (payload: any) => {
+            console.log('🔔 Realtime Update received for homepage settings:', payload);
+            if (payload.new && payload.new.settings) {
+              this.set('eb_homepage_settings', payload.new.settings);
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
               }
@@ -1238,6 +1265,14 @@ class MockDB {
 
   updateHomepageSettings(settings: HomepageSettings): HomepageSettings {
     this.set('eb_homepage_settings', settings);
+    
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('homepage_settings').upsert({ id: 'default', settings })
+        .then(({ error }) => {
+          if (error) console.error('Failed to sync homepage settings to Supabase:', error);
+        });
+    }
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
     }
