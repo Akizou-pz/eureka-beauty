@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, Coupon } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
-import { Ticket, Mail, Plus, X } from 'lucide-react';
+import { Ticket, Mail, Plus, X, Pencil } from 'lucide-react';
 
 export default function AdminMarketingPage() {
   const { formatPrice } = useLangCurr();
@@ -14,6 +14,7 @@ export default function AdminMarketingPage() {
 
   // Form states
   const [isOpen, setIsOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [code, setCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(15);
   const [minValue, setMinValue] = useState(10000);
@@ -33,9 +34,18 @@ export default function AdminMarketingPage() {
   }, []);
 
   const openModal = () => {
+    setEditingCoupon(null);
     setCode('');
     setDiscountPercent(15);
     setMinValue(10000);
+    setIsOpen(true);
+  };
+
+  const handleEdit = (coupon: Coupon) => {
+    setEditingCoupon(coupon);
+    setCode(coupon.code);
+    setDiscountPercent(coupon.discount_percent);
+    setMinValue(coupon.min_order_value_xof);
     setIsOpen(true);
   };
 
@@ -43,18 +53,28 @@ export default function AdminMarketingPage() {
     e.preventDefault();
     if (!code) return;
 
-    db.createCoupon({
-      code: code.toUpperCase().trim(),
-      discount_percent: Number(discountPercent),
-      min_order_value_xof: Number(minValue),
-      is_active: true,
-    });
+    if (editingCoupon) {
+      db.updateCoupon({
+        ...editingCoupon,
+        code: code.toUpperCase().trim(),
+        discount_percent: Number(discountPercent),
+        min_order_value_xof: Number(minValue),
+      });
+      setSuccessMsg(`Coupon ${code.toUpperCase()} modifié avec succès !`);
+    } else {
+      db.createCoupon({
+        code: code.toUpperCase().trim(),
+        discount_percent: Number(discountPercent),
+        min_order_value_xof: Number(minValue),
+        is_active: true,
+      });
+      setSuccessMsg(`Coupon ${code.toUpperCase()} créé avec succès !`);
+    }
 
-    setSuccessMsg(`Coupon ${code.toUpperCase()} créé avec succès !`);
     setTimeout(() => setSuccessMsg(''), 4000);
-    
     loadData();
     setIsOpen(false);
+    setEditingCoupon(null);
   };
 
   return (
@@ -97,7 +117,7 @@ export default function AdminMarketingPage() {
             {coupons.map((coupon) => (
               <div 
                 key={coupon.id} 
-                className="flex justify-between items-center p-4 bg-white/5 border border-white/5 rounded-xl text-xs"
+                className="flex justify-between items-center p-4 bg-white/5 border border-white/5 rounded-xl text-xs font-light"
               >
                 <div className="space-y-1">
                   <span className="bg-gold/15 text-gold font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">
@@ -105,9 +125,18 @@ export default function AdminMarketingPage() {
                   </span>
                   <p className="text-[10px] text-white/50 mt-1">Minimum d'achat : {formatPrice(coupon.min_order_value_xof)}</p>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-bold text-white">-{coupon.discount_percent}%</span>
-                  <span className="text-[8px] bg-success/15 text-success font-semibold px-2 py-0.5 rounded-full mt-1.5 block uppercase">ACTIF</span>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-white">-{coupon.discount_percent}%</span>
+                    <span className="text-[8px] bg-success/15 text-success font-semibold px-2 py-0.5 rounded-full mt-1 block uppercase">ACTIF</span>
+                  </div>
+                  <button
+                    onClick={() => handleEdit(coupon)}
+                    className="text-gold hover:text-white p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition"
+                    title="Modifier le coupon"
+                  >
+                    <Pencil size={13} />
+                  </button>
                 </div>
               </div>
             ))}
@@ -145,7 +174,7 @@ export default function AdminMarketingPage() {
       </div>
 
       {/* ==========================================
-          ADD COUPON MODAL FORM
+          ADD/EDIT COUPON MODAL FORM
          ========================================== */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
@@ -153,7 +182,7 @@ export default function AdminMarketingPage() {
             
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <h3 className="font-serif-display font-semibold text-sm text-white uppercase tracking-wider">
-                Nouveau Code Promo
+                {editingCoupon ? 'Modifier le Code Promo' : 'Nouveau Code Promo'}
               </h3>
               <button 
                 onClick={() => setIsOpen(false)}
@@ -214,7 +243,7 @@ export default function AdminMarketingPage() {
                   type="submit"
                   className="flex-1 bg-gold hover:bg-gold-hover text-white font-bold uppercase tracking-widest py-3 rounded-lg shadow transition"
                 >
-                  Créer le code
+                  {editingCoupon ? 'Enregistrer' : 'Créer le code'}
                 </button>
               </div>
 

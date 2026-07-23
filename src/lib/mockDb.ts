@@ -833,6 +833,22 @@ class MockDB {
     return newCoupon;
   }
 
+  updateCoupon(coupon: Coupon): Coupon {
+    const coupons = this.getCoupons();
+    const idx = coupons.findIndex((c) => c.id === coupon.id);
+    if (idx !== -1) {
+      coupons[idx] = coupon;
+      this.set('eb_coupons', coupons);
+
+      if (HAS_SUPABASE_CREDS) {
+        supabase.from('coupons').update(coupon).eq('id', coupon.id).then(({ error }) => {
+          if (error) console.error('Supabase coupon update error:', error);
+        });
+      }
+    }
+    return coupon;
+  }
+
   // Delivery Zones
   getDeliveryZones(): DeliveryZone[] {
     return this.get<DeliveryZone[]>('eb_delivery_zones', seedDeliveryZones);
