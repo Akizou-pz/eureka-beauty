@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { db, Order } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { notifyNewOrder } from '@/lib/notifications';
-import { generateOrderSlipPDF } from '@/lib/pdfGenerator';
+import { generateOrderSlipPDF, generateInvoicePDF } from '@/lib/pdfGenerator';
 import { ClipboardList, Search, Eye, Edit, Printer, Download, CheckCircle, Clock, X, AlertTriangle } from 'lucide-react';
 
 export default function AdminOrdersPage() {
@@ -292,14 +292,23 @@ export default function AdminOrdersPage() {
                           </span>
                         </td>
                         <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-1.5 justify-end">
                             <button
-                              onClick={() => handleDownloadPDF(ord)}
-                              className="w-8 h-8 rounded bg-gold/10 hover:bg-gold hover:text-white transition flex items-center justify-center text-gold border border-gold/20"
-                              title="Télécharger PDF"
+                              onClick={() => generateOrderSlipPDF(ord, formatPrice)}
+                              className="w-8 h-8 rounded bg-white/5 hover:bg-white/10 transition flex items-center justify-center text-white/60"
+                              title="Télécharger le Bordereau PDF"
                             >
-                              <Download size={12} />
+                              <Download size={11} />
                             </button>
+                            {ord.order_status === 'Delivered' && (
+                              <button
+                                onClick={() => generateInvoicePDF(ord, formatPrice)}
+                                className="w-8 h-8 rounded bg-gold/10 hover:bg-gold hover:text-white transition flex items-center justify-center text-gold border border-gold/20"
+                                title="Télécharger la Facture PDF"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                              </button>
+                            )}
                             <button
                               onClick={() => setSelectedOrder(ord)}
                               className="w-8 h-8 rounded bg-white/5 hover:bg-white/10 transition flex items-center justify-center text-white/60"
@@ -336,16 +345,26 @@ export default function AdminOrdersPage() {
                   <h3 className="font-serif-display font-semibold text-sm text-white">Détails Commande</h3>
                   <p className="text-[10px] text-gold mt-0.5">{selectedOrder.order_number}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <button
-                    onClick={() => handleDownloadPDF(selectedOrder)}
-                    className="bg-gold hover:bg-gold-hover text-dark font-bold border border-gold rounded-lg px-3 py-2 transition flex items-center gap-1.5 text-[10px] uppercase tracking-wider shadow"
+                    onClick={() => generateOrderSlipPDF(selectedOrder, formatPrice)}
+                    className="bg-[#1c1c1c] hover:bg-white/5 text-white font-bold border border-white/10 rounded-lg px-2 py-1.5 transition flex items-center gap-1 text-[9px] uppercase tracking-wider shadow"
+                    title="Télécharger le Bordereau de Commande"
                   >
-                    <Download size={12} /> Télécharger PDF
+                    <Download size={10} /> Bordereau
                   </button>
+                  {selectedOrder.order_status === 'Delivered' && (
+                    <button
+                      onClick={() => generateInvoicePDF(selectedOrder, formatPrice)}
+                      className="bg-gold hover:bg-gold-hover text-dark font-bold border border-gold rounded-lg px-2 py-1.5 transition flex items-center gap-1 text-[9px] uppercase tracking-wider shadow"
+                      title="Télécharger la Facture Officielle"
+                    >
+                      <Download size={10} /> Facture
+                    </button>
+                  )}
                   <button
                     onClick={() => handlePrint(selectedOrder)}
-                    className="bg-white/5 hover:bg-gold hover:text-white border border-white/10 rounded-lg p-2 transition flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-white"
+                    className="bg-white/5 hover:bg-gold hover:text-white border border-white/10 rounded-lg p-2 transition flex items-center justify-center text-white/60"
                     title="Imprimer"
                   >
                     <Printer size={12} />

@@ -7,7 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { db, Order, Product } from '@/lib/db';
 import { requestNotificationPermission, notifyNewOrder } from '@/lib/notifications';
-import { generateOrderSlipPDF } from '@/lib/pdfGenerator';
+import { generateOrderSlipPDF, generateInvoicePDF } from '@/lib/pdfGenerator';
 import { 
   User, 
   ShoppingBag, 
@@ -602,6 +602,16 @@ function CustomerDashboard() {
                             <FileText size={12} />
                             Bordereau (PDF)
                           </button>
+                          {ord.order_status === 'Delivered' && (
+                            <button
+                              onClick={() => generateInvoicePDF(ord, formatPrice)}
+                              className="text-[10px] font-bold uppercase tracking-widest text-gold hover:text-gold-hover transition flex items-center gap-1"
+                              title="Télécharger la facture PDF"
+                            >
+                              <FileText size={12} />
+                              Facture (PDF)
+                            </button>
+                          )}
                           <button
                             onClick={() => router.push(`/track?num=${ord.order_number}&phone=${ord.phone}`)}
                             className="text-[10px] font-bold uppercase tracking-widest text-dark hover:text-gold transition flex items-center gap-0.5"
