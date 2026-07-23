@@ -178,8 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (session?.user) {
             const profile = await syncUserSession(session.user);
-            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && profile) {
-              redirectByRole(profile.role);
+            if (event === 'SIGNED_IN' && profile) {
+              const path = window.location.pathname;
+              if (path === '/' || path.startsWith('/dashboard')) {
+                redirectByRole(profile.role);
+              }
             }
           } else if (event === 'SIGNED_OUT') {
             setUser(null);
