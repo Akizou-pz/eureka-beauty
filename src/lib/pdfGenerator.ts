@@ -119,9 +119,8 @@ export const generateOrderSlipPDF = (order: Order, formatPrice: (amount: number)
     doc.text('Instructions : Aucune consigne spécifique.', 112, boxTop + 23);
   }
 
-  // 4. Products table with a verification check column
+  // 4. Products table
   const tableData = order.items.map((item) => [
-    '[   ]',
     item.product_name,
     item.sku || 'N/A',
     `x ${item.quantity}`,
@@ -131,7 +130,7 @@ export const generateOrderSlipPDF = (order: Order, formatPrice: (amount: number)
 
   autoTable(doc, {
     startY: 85,
-    head: [['Vérifié', 'Désignation de l\'article', 'Code/SKU', 'Qté', 'Prix Unitaire', 'Total']],
+    head: [['Désignation de l\'article', 'Code/SKU', 'Qté', 'Prix Unitaire', 'Total']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -147,12 +146,11 @@ export const generateOrderSlipPDF = (order: Order, formatPrice: (amount: number)
       cellPadding: 3.5,
     },
     columnStyles: {
-      0: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 70, halign: 'left' },
-      2: { cellWidth: 22, halign: 'center' },
-      3: { cellWidth: 15, halign: 'center' },
+      0: { cellWidth: 85, halign: 'left' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 15, halign: 'center' },
+      3: { cellWidth: 34, halign: 'right' },
       4: { cellWidth: 34, halign: 'right' },
-      5: { cellWidth: 34, halign: 'right' },
     },
     tableLineWidth: 0.1,
     tableLineColor: [220, 220, 220],
@@ -202,50 +200,12 @@ export const generateOrderSlipPDF = (order: Order, formatPrice: (amount: number)
   doc.setTextColor(...goldColor);
   doc.text(cleanPrice(order.total_xof), 196, currentY, { align: 'right' });
 
-  // 6. Signatures & Reception Block
-  const sigTop = Math.max(currentY + 12, finalY + 35);
-  doc.setDrawColor(226, 215, 197);
-  doc.setLineWidth(0.2);
-  doc.line(14, sigTop - 4, 196, sigTop - 4);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...darkColor);
-  doc.text('SIGNATURES POUR CONFIRMATION DE RÉCEPTION', 14, sigTop + 2);
-
-  const sigBoxHeight = 22;
-  const sigBoxWidth = 88;
-
-  // Driver signature box
-  doc.setFillColor(...borderBg);
-  doc.roundedRect(14, sigTop + 6, sigBoxWidth, sigBoxHeight, 2, 2, 'FD');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkColor);
-  doc.text('LE LIVREUR :', 18, sigTop + 11);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...grayColor);
-  doc.text('Signature & Date :', 18, sigTop + 16);
-
-  // Recipient signature box
-  doc.setFillColor(...borderBg);
-  doc.roundedRect(108, sigTop + 6, sigBoxWidth, sigBoxHeight, 2, 2, 'FD');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(...darkColor);
-  doc.text('LE CLIENT (REÇU CONFORME) :', 112, sigTop + 11);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...grayColor);
-  doc.text('Signature & Date :', 112, sigTop + 16);
-
-  // 7. Footer
+  // 6. Footer
   const pageHeight = doc.internal.pageSize.getHeight();
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...grayColor);
-  doc.text('Bordereau de livraison à conserver par le client pour vérification.', 105, pageHeight - 12, { align: 'center' });
+  doc.text('Ce bordereau de commande sert uniquement à vous informer du récapitulatif de vos achats.', 105, pageHeight - 12, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7);
