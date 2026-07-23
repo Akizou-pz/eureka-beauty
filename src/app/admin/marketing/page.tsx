@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, Coupon } from '@/lib/db';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
-import { Ticket, Mail, Plus, X, Pencil } from 'lucide-react';
+import { Ticket, Mail, Plus, X, Pencil, Trash2 } from 'lucide-react';
 
 export default function AdminMarketingPage() {
   const { formatPrice } = useLangCurr();
@@ -32,6 +32,15 @@ export default function AdminMarketingPage() {
     window.addEventListener('supabase_sync_complete', loadData);
     return () => window.removeEventListener('supabase_sync_complete', loadData);
   }, []);
+
+  const handleDelete = (coupon: Coupon) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le code promo "${coupon.code}" ?`)) {
+      db.deleteCoupon(coupon.id);
+      setSuccessMsg(`Coupon "${coupon.code}" supprimé avec succès.`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+      loadData();
+    }
+  };
 
   const openModal = () => {
     setEditingCoupon(null);
@@ -136,6 +145,13 @@ export default function AdminMarketingPage() {
                     title="Modifier le coupon"
                   >
                     <Pencil size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(coupon)}
+                    className="text-error hover:text-white p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition"
+                    title="Supprimer le coupon"
+                  >
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>

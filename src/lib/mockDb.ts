@@ -849,6 +849,18 @@ class MockDB {
     return coupon;
   }
 
+  deleteCoupon(id: string): void {
+    const coupons = this.getCoupons();
+    const filtered = coupons.filter((c) => c.id !== id);
+    this.set('eb_coupons', filtered);
+
+    if (HAS_SUPABASE_CREDS) {
+      supabase.from('coupons').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase coupon delete error:', error);
+      });
+    }
+  }
+
   // Delivery Zones
   getDeliveryZones(): DeliveryZone[] {
     return this.get<DeliveryZone[]>('eb_delivery_zones', seedDeliveryZones);
