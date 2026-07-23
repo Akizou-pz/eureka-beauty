@@ -1215,25 +1215,28 @@ class MockDB {
   // Analytics Metrics (Mock data aggregate)
   getAnalytics() {
     const orders = this.getOrders();
-    const paidOrders = orders.filter((o) => o.payment_status === 'Paid' || o.payment_method === 'COD');
+    // Revenue calculated only from delivered and paid orders
+    const deliveredAndPaidOrders = orders.filter((o) => o.order_status === 'Delivered' && o.payment_status === 'Paid');
     
-    const totalSales = paidOrders.reduce((sum, o) => sum + o.total_xof, 0);
+    const totalSales = deliveredAndPaidOrders.reduce((sum, o) => sum + o.total_xof, 0);
     const totalOrders = orders.length;
+    const confirmedOrders = orders.filter((o) => o.order_status === 'Confirmed').length;
+    const deliveredOrders = orders.filter((o) => o.order_status === 'Delivered').length;
     const pendingOrders = orders.filter((o) => o.order_status !== 'Delivered' && o.order_status !== 'Cancelled').length;
-    const completedOrders = orders.filter((o) => o.order_status === 'Delivered').length;
+    const completedOrders = deliveredOrders;
     
     // Growth metrics (mock static base + dynamic orders)
     const baseVisitors = 3840;
     const visitors = baseVisitors + orders.length * 15;
     const conversionRate = visitors > 0 ? parseFloat(((totalOrders / visitors) * 100).toFixed(2)) : 0;
 
-    // Chart Sales Over Time (Last 7 Days)
+    // Chart Sales Over Time (Last 7 Days) - only delivered and paid
     const salesOverTime = Array.from({ length: 7 }).map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       const dateStr = d.toISOString().split('T')[0];
       
-      const dayOrders = orders.filter((o) => o.created_at.startsWith(dateStr));
+      const dayOrders = orders.filter((o) => o.created_at.startsWith(dateStr) && o.order_status === 'Delivered' && o.payment_status === 'Paid');
       const revenue = dayOrders.reduce((sum, o) => sum + o.total_xof, 0);
       
       return {
@@ -1246,6 +1249,8 @@ class MockDB {
     return {
       totalSales,
       totalOrders,
+      confirmedOrders,
+      deliveredOrders,
       pendingOrders,
       completedOrders,
       visitors,

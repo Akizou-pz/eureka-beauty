@@ -12,12 +12,16 @@ import {
   Percent, 
   Calendar, 
   ArrowUpRight, 
-  ClipboardList 
+  ClipboardList,
+  CheckCircle,
+  Clock 
 } from 'lucide-react';
 
 interface AnalyticsData {
   totalSales: number;
   totalOrders: number;
+  confirmedOrders: number;
+  deliveredOrders: number;
   pendingOrders: number;
   completedOrders: number;
   visitors: number;
@@ -67,67 +71,89 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Grid of Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         
         {/* Metric 1: Revenue */}
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl space-y-4">
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
           <div className="flex justify-between items-center text-white/50">
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Chiffre d'Affaires</span>
-            <div className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
-              <DollarSign size={16} />
+            <span className="text-[9px] uppercase tracking-widest font-semibold">C.A. (Livré & Payé)</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <DollarSign size={14} />
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold font-serif-display text-white">{formatPrice(stats.totalSales)}</h3>
-            <p className="text-[9px] text-success font-semibold mt-1 flex items-center gap-0.5">
-              +14.5% <TrendingUp size={10} /> <span className="text-white/30 font-light">vs mois dernier</span>
-            </p>
+            <h3 className="text-lg font-bold font-serif-display text-white">{formatPrice(stats.totalSales)}</h3>
+            <p className="text-[8px] text-success font-semibold mt-1">Commandes livrées & payées</p>
           </div>
         </div>
 
-        {/* Metric 2: Orders */}
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl space-y-4">
+        {/* Metric 2: Delivered Orders */}
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
           <div className="flex justify-between items-center text-white/50">
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Commandes Totales</span>
-            <div className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
-              <ShoppingBag size={16} />
+            <span className="text-[9px] uppercase tracking-widest font-semibold">Livrées</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <CheckCircle size={14} className="text-success" />
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold font-serif-display text-white">{stats.totalOrders}</h3>
-            <p className="text-[9px] text-success font-semibold mt-1 flex items-center gap-0.5">
-              +{stats.pendingOrders} en attente <span className="text-white/30 font-light">de livraison</span>
-            </p>
+            <h3 className="text-lg font-bold font-serif-display text-white">{stats.deliveredOrders}</h3>
+            <p className="text-[8px] text-white/30 font-light mt-1">Commandes acheminées</p>
           </div>
         </div>
 
-        {/* Metric 3: Visitors */}
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl space-y-4">
+        {/* Metric 3: Confirmed Orders */}
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
           <div className="flex justify-between items-center text-white/50">
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Visites Boutique</span>
-            <div className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
-              <Users size={16} />
+            <span className="text-[9px] uppercase tracking-widest font-semibold">Confirmées</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <Clock size={14} className="text-gold" />
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold font-serif-display text-white">{stats.visitors}</h3>
-            <p className="text-[9px] text-white/30 font-light mt-1">Trafic cumulé sur la session</p>
+            <h3 className="text-lg font-bold font-serif-display text-white">{stats.confirmedOrders}</h3>
+            <p className="text-[8px] text-white/30 font-light mt-1">En attente de traitement</p>
           </div>
         </div>
 
-        {/* Metric 4: Conversion Rate */}
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl space-y-4">
+        {/* Metric 4: Total Orders */}
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
           <div className="flex justify-between items-center text-white/50">
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Taux de Conversion</span>
-            <div className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
-              <Percent size={16} />
+            <span className="text-[9px] uppercase tracking-widest font-semibold">Total Commandes</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <ShoppingBag size={14} />
             </div>
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-bold font-serif-display text-white">{stats.conversionRate}%</h3>
-            <p className="text-[9px] text-success font-semibold mt-1 flex items-center gap-0.5">
-              Optimal <TrendingUp size={10} /> <span className="text-white/30 font-light">pour le secteur</span>
-            </p>
+            <h3 className="text-lg font-bold font-serif-display text-white">{stats.totalOrders}</h3>
+            <p className="text-[8px] text-success font-semibold mt-1">+{stats.pendingOrders} en attente</p>
+          </div>
+        </div>
+
+        {/* Metric 5: Visitors */}
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
+          <div className="flex justify-between items-center text-white/50">
+            <span className="text-[9px] uppercase tracking-widest font-semibold">Visites Boutique</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <Users size={14} />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold font-serif-display text-white">{stats.visitors}</h3>
+            <p className="text-[8px] text-white/30 font-light mt-1">Trafic cumulé</p>
+          </div>
+        </div>
+
+        {/* Metric 6: Conversion Rate */}
+        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl space-y-3">
+          <div className="flex justify-between items-center text-white/50">
+            <span className="text-[9px] uppercase tracking-widest font-semibold">Conversion</span>
+            <div className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center">
+              <Percent size={14} />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold font-serif-display text-white">{stats.conversionRate}%</h3>
+            <p className="text-[8px] text-success font-semibold mt-1">Taux d'achat</p>
           </div>
         </div>
 
