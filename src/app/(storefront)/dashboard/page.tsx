@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
 import { db, Order, Product } from '@/lib/db';
 import { requestNotificationPermission, notifyNewOrder } from '@/lib/notifications';
+import { generateInvoicePDF } from '@/lib/pdfGenerator';
 import { 
   User, 
   ShoppingBag, 
@@ -22,7 +23,8 @@ import {
   Tag,
   CheckCircle,
   Truck,
-  Globe
+  Globe,
+  FileText
 } from 'lucide-react';
 
 function CustomerDashboard() {
@@ -591,12 +593,22 @@ function CustomerDashboard() {
                           <span className="text-dark-muted">Total: </span>
                           <span className="font-bold text-gold text-sm">{formatPrice(ord.total_xof)}</span>
                         </div>
-                        <button
-                          onClick={() => router.push(`/track?num=${ord.order_number}&phone=${ord.phone}`)}
-                          className="text-[10px] font-bold uppercase tracking-widest text-dark hover:text-gold transition flex items-center gap-0.5"
-                        >
-                          Suivre le colis <ChevronRight size={12} />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => generateInvoicePDF(ord, formatPrice)}
+                            className="text-[10px] font-bold uppercase tracking-widest text-gold hover:text-gold-hover transition flex items-center gap-1"
+                            title="Télécharger le reçu PDF"
+                          >
+                            <FileText size={12} />
+                            Reçu (PDF)
+                          </button>
+                          <button
+                            onClick={() => router.push(`/track?num=${ord.order_number}&phone=${ord.phone}`)}
+                            className="text-[10px] font-bold uppercase tracking-widest text-dark hover:text-gold transition flex items-center gap-0.5"
+                          >
+                            Suivre le colis <ChevronRight size={12} />
+                          </button>
+                        </div>
                       </div>
 
                       {ord.order_status === 'Cancelled' && (

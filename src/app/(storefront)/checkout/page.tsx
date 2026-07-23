@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLangCurr } from '@/context/LanguageCurrencyContext';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db, DeliveryZone, Order, ShippingCountry } from '@/lib/db';
 import { trackMetaEvent } from '@/lib/metaPixel';
 import { notifyNewOrder, sendOrderEmailAlert } from '@/lib/notifications';
+import { generateInvoicePDF } from '@/lib/pdfGenerator';
 import {
   ShoppingBag,
   CheckCircle,
@@ -18,7 +19,8 @@ import {
   Phone,
   MessageSquare,
   Sparkles,
-  Ticket
+  Ticket,
+  FileText
 } from 'lucide-react';
 
 function CheckoutForm() {
@@ -40,6 +42,18 @@ function CheckoutForm() {
   // Order placement status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+
+  const hasAutoDownloaded = useRef(false);
+  useEffect(() => {
+    if (placedOrder && !hasAutoDownloaded.current) {
+      hasAutoDownloaded.current = true;
+      try {
+        generateInvoicePDF(placedOrder, formatPrice);
+      } catch (err) {
+        console.error('Auto-download PDF error:', err);
+      }
+    }
+  }, [placedOrder, formatPrice]);
 
   // Form Fields
   const [fullName, setFullName] = useState(user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '');
@@ -323,6 +337,14 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
 
         {/* Fast Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={() => generateInvoicePDF(placedOrder, formatPrice)}
+            className="bg-gold hover:bg-gold-hover text-white text-xs font-semibold uppercase tracking-widest px-8 py-4 rounded-lg transition shadow-md flex items-center justify-center gap-2"
+          >
+            <FileText size={16} />
+            <span>Télécharger le Reçu PDF</span>
+          </button>
+
           <a
             href={`https://wa.me/22893866752?text=${whatsappMessage}`}
             target="_blank"
