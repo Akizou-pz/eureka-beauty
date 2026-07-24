@@ -84,7 +84,7 @@ function CheckoutForm() {
       const rawMessage = `Nouvelle commande ✨ Eureka Beauty Africa
 👤 Client : ${placedOrder.first_name.toUpperCase()} ${placedOrder.last_name.toUpperCase()}
 📱 Téléphone : ${placedOrder.phone}
-📍 Adresse : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
+📍 Quartier : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
 🚚 Livraison : ${placedOrder.country} — ${placedOrder.city} (${placedOrder.shipping_cost_xof === 0 ? 'gratuite' : formatPrice(placedOrder.shipping_cost_xof)})
 Produits :
 ${productsList}
@@ -276,7 +276,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
     const rawMessage = `Nouvelle commande \u2728 Eureka Beauty Africa
 \uD83D\uDC64 Client : ${placedOrder.first_name.toUpperCase()} ${placedOrder.last_name.toUpperCase()}
 \uD83D\uDCF1 Téléphone : ${placedOrder.phone}
-\uD83D\uDCCD Adresse : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
+\uD83D\uDCCD Quartier : ${placedOrder.address_line.toUpperCase()}, ${placedOrder.city.toUpperCase()} — ${placedOrder.country}
 \uD83D\uDE9A Livraison : ${placedOrder.country} — ${placedOrder.city} (${placedOrder.shipping_cost_xof === 0 ? 'gratuite' : formatPrice(placedOrder.shipping_cost_xof)})
 Produits :
 ${productsList}
@@ -315,7 +315,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
               <p className="font-semibold text-dark mt-0.5">{placedOrder.phone}</p>
             </div>
             <div className="col-span-2">
-              <p className="text-dark-muted">Adresse de livraison :</p>
+              <p className="text-dark-muted">Quartier de résidence :</p>
               <p className="font-semibold text-dark mt-0.5">{placedOrder.address_line}, {placedOrder.city}, {placedOrder.country}</p>
             </div>
             <div>
@@ -534,7 +534,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
               <input
                 type="text"
                 required
-                placeholder="Ex: Cocody Mermoz, Rue C20, Villa 45"
+                placeholder="Ex: Cocody Mermoz, Angré Nouveau Goudron, etc."
                 value={addressLine}
                 onChange={(e) => setAddressLine(e.target.value)}
                 className="w-full text-xs bg-bg-cream/40 rounded-lg px-3 py-2.5 border border-gold/15 text-dark"

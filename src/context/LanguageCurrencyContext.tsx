@@ -59,7 +59,7 @@ const translations: TranslationDict = {
   email: { FR: 'E-mail', EN: 'Email' },
   country: { FR: 'Pays', EN: 'Country' },
   city: { FR: 'Ville', EN: 'City' },
-  address: { FR: 'Adresse complète', EN: 'Full Address' },
+  address: { FR: 'Quartier de résidence', EN: 'Neighborhood of residence' },
   deliveryNotes: { FR: 'Instructions pour le livreur (ex: étage, point de repère)', EN: 'Delivery notes (e.g. floor, landmark)' },
   paymentMethod: { FR: 'Moyen de paiement', EN: 'Payment Method' },
   cod: { FR: 'Paiement à la livraison (COD) - Par défaut', EN: 'Cash on Delivery (COD) - Default' },
