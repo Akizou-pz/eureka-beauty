@@ -543,14 +543,14 @@ function CustomerDashboard() {
                   Ravi de vous revoir, {user.first_name} !
                 </h2>
                 <p className="text-[11px] text-white/60 leading-relaxed font-light">
-                  Chaque achat vous rapporte 0.5% en points de fidélité réutilisables lors de vos checkouts.
+                  Chaque FCFA dépensé vous rapporte 1 point de fidélité (1 FCFA = 1 point).
                 </p>
               </div>
               
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 min-w-[140px] text-center flex-shrink-0">
                 <span className="text-[9px] uppercase tracking-widest text-white/40 block">Points Accumulés</span>
                 <span className="font-serif-display text-3xl font-bold text-gold mt-1 block">{user.loyalty_points}</span>
-                <span className="text-[9px] text-gold/75 mt-1 block">Valeur: {formatPrice(user.loyalty_points * 10)}</span>
+                <span className="text-[9px] text-gold/75 mt-1 block">Valeur: {formatPrice(user.loyalty_points)}</span>
               </div>
             </div>
           )}

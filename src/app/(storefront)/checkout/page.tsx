@@ -105,7 +105,7 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
   // Loyalty rewards state
   const [useLoyalty, setUseLoyalty] = useState(false);
   const loyaltyPointsBalance = user?.loyalty_points || 0;
-  const loyaltyDiscountValue = loyaltyPointsBalance * 10; // 1 point = 10 FCFA discount
+  const loyaltyDiscountValue = loyaltyPointsBalance * 1; // 1 point = 1 FCFA discount
 
   const [customCity, setCustomCity] = useState('');
   const [countriesList, setCountriesList] = useState<ShippingCountry[]>([]);
@@ -251,9 +251,9 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
         num_items: orderItems.length
       });
 
-      // Reward loyalty points (5% of subtotal, rounded)
+      // Reward loyalty points (1 FCFA = 1 point)
       if (user) {
-        const earnedPoints = Math.round(subtotal * 0.005);
+        const earnedPoints = Math.round(subtotal);
         // deduct applied points, add earned points
         const updatedPoints = Math.max(0, loyaltyPointsBalance - (useLoyalty ? loyaltyPointsBalance : 0)) + earnedPoints;
         updateProfile({ loyalty_points: updatedPoints });
