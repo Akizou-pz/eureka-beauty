@@ -251,9 +251,9 @@ Total : ${formatPrice(placedOrder.total_xof)}`;
         num_items: orderItems.length
       });
 
-      // Reward loyalty points (1 FCFA = 1 point)
+      // Reward loyalty points (0.5% of purchase amount, rounded)
       if (user) {
-        const earnedPoints = Math.round(subtotal);
+        const earnedPoints = Math.round(subtotal * 0.005);
         // deduct applied points, add earned points
         const updatedPoints = Math.max(0, loyaltyPointsBalance - (useLoyalty ? loyaltyPointsBalance : 0)) + earnedPoints;
         updateProfile({ loyalty_points: updatedPoints });

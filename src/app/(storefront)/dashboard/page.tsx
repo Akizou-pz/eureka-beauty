@@ -543,7 +543,7 @@ function CustomerDashboard() {
                   Ravi de vous revoir, {user.first_name} !
                 </h2>
                 <p className="text-[11px] text-white/60 leading-relaxed font-light">
-                  Chaque FCFA dépensé vous rapporte 1 point de fidélité (1 FCFA = 1 point).
+                  Chaque achat vous rapporte 0.5% en points de fidélité réutilisables lors de vos checkouts (1 point = 1 FCFA).
                 </p>
               </div>
               
