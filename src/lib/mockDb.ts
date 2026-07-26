@@ -1212,6 +1212,20 @@ class MockDB {
     return true;
   }
 
+  getPageViews(): number {
+    return this.get<number>('eb_page_views', 0);
+  }
+
+  incrementPageView(): number {
+    const current = this.getPageViews();
+    const next = current + 1;
+    this.set('eb_page_views', next);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase_sync_complete'));
+    }
+    return next;
+  }
+
   // Analytics Metrics (Mock data aggregate)
   getAnalytics() {
     const orders = this.getOrders();
@@ -1225,9 +1239,8 @@ class MockDB {
     const pendingOrders = orders.filter((o) => o.order_status !== 'Delivered' && o.order_status !== 'Cancelled').length;
     const completedOrders = deliveredOrders;
     
-    // Growth metrics (mock static base + dynamic orders)
-    const baseVisitors = 3840;
-    const visitors = baseVisitors + orders.length * 15;
+    // Real visitors / page views counter (starts from 0 and tracks real storefront pageviews)
+    const visitors = this.getPageViews();
     const conversionRate = visitors > 0 ? parseFloat(((totalOrders / visitors) * 100).toFixed(2)) : 0;
 
     // Chart Sales Over Time (Last 7 Days) - only delivered and paid

@@ -5,6 +5,7 @@ import { LanguageCurrencyProvider } from '@/context/LanguageCurrencyContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import MetaPixel from '@/components/MetaPixel';
+import PageViewTracker from '@/components/PageViewTracker';
 
 const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -51,6 +52,7 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <MetaPixel />
+              <PageViewTracker />
               {children}
             </CartProvider>
           </AuthProvider>
