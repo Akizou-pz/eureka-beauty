@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Outfit } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import { LanguageCurrencyProvider } from '@/context/LanguageCurrencyContext';
 import { AuthProvider } from '@/context/AuthContext';
@@ -7,17 +7,10 @@ import { CartProvider } from '@/context/CartContext';
 import MetaPixel from '@/components/MetaPixel';
 import PageViewTracker from '@/components/PageViewTracker';
 
-const cormorant = Cormorant_Garamond({
-  variable: '--font-cormorant',
+const poppins = Poppins({
+  variable: '--font-poppins',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-});
-
-const outfit = Outfit({
-  variable: '--font-outfit',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
 });
 
 export const viewport: Viewport = {
@@ -46,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${cormorant.variable} ${outfit.variable} h-full`}>
+    <html lang="fr" className={`${poppins.variable} font-sans h-full`}>
       <body className="min-h-full flex flex-col bg-bg-cream text-dark antialiased">
         <LanguageCurrencyProvider>
           <AuthProvider>

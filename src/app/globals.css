@@ -10,8 +10,8 @@
   --color-success: #16A34A;
   --color-error: #DC2626;
 
-  --font-serif: "Playfair Display", Cormorant Garamond, Georgia, serif;
-  --font-sans: "Inter", Outfit, system-ui, sans-serif;
+  --font-serif: var(--font-poppins), "Poppins", system-ui, sans-serif;
+  --font-sans: var(--font-poppins), "Poppins", system-ui, sans-serif;
 }
 
 :root {
@@ -19,23 +19,35 @@
   --foreground: #222222;
 }
 
-html, body {
+html {
+  font-size: 110%; /* Makes all typography ~10% larger across the entire site */
   max-width: 100vw;
   overflow-x: hidden;
 }
 
 body {
+  max-width: 100vw;
+  overflow-x: hidden;
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-poppins), "Poppins", system-ui, sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Luxury UI Utility Styles */
 .font-serif-display {
-  font-family: var(--font-serif);
+  font-family: var(--font-poppins), "Poppins", sans-serif;
 }
+
+/* Make micro text classes larger and easy to read site-wide */
+.text-\[8px\] { font-size: 10px !important; }
+.text-\[9px\] { font-size: 11px !important; }
+.text-\[10px\] { font-size: 12px !important; }
+.text-\[11px\] { font-size: 13px !important; }
+.text-xs { font-size: 0.875rem !important; }
 
 .luxury-shadow {
   box-shadow: 0 10px 40px -10px rgba(34, 34, 34, 0.05);
